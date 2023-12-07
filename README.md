@@ -15,6 +15,7 @@ MODEL_PATH = /path/to/model
 ENABLE_CUDA = true
 ENABLE_USE_CACHE = true
 LOW_CPU_MEM_USAGE = true
+LOAD_IN_8BIT = false
 
 MODEL_SEED = 42
 MODEL_DEFAULT_NUM_BEAMS = 1
@@ -42,6 +43,7 @@ General config:
 - **ENABLE_USE_CACHE**:Bool - Weather or not to use caching for already calculated tokens, useful when pushing one token
   at a time
 - **LOW_CPU_MEM_USAGE**:Bool - Exchange slower loading for less memory usage when loading the model to GPU
+- **LOAD_IN_8BIT**:Bool - When true, loads the model in 8-bit precision instead of the standard 16-bit (bfloat16/float16), reducing RAM/GPU memory use but sacrificing some precision.
 
 
 Default generation config:
