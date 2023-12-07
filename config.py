@@ -7,6 +7,7 @@ load_dotenv()
 SERVER_HOST = os.getenv("SERVER_HOST", "127.0.0.1")
 SERVER_PORT = int(os.getenv("SERVER_PORT", "5050"))
 LOG_LEVEL = os.getenv("SERVER_HOST", "info")
+LOW_CPU_MEM_USAGE = os.getenv("ENABLE_CUDA", "False").lower() == 'true'
 
 # Model inference configuration
 MODEL_PATH = os.getenv("MODEL_PATH")
