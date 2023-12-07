@@ -6,6 +6,7 @@ load_dotenv()
 # Rest API server configuration
 SERVER_HOST = os.getenv("SERVER_HOST", "127.0.0.1")
 SERVER_PORT = int(os.getenv("SERVER_PORT", "5050"))
+LOG_LEVEL = os.getenv("SERVER_HOST", "info")
 
 # Model inference configuration
 MODEL_PATH = os.getenv("MODEL_PATH")

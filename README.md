@@ -9,6 +9,7 @@ Default parameters:
 ```
 SERVER_HOST = 127.0.0.1
 SERVER_PORT = 5050
+LOG_LEVEL = info
 
 MODEL_PATH = /path/to/model 
 ENABLE_CUDA = true
@@ -30,6 +31,7 @@ Rest API server config:
 
 - **SERVER_HOST**:String - IP address the port will listen to (0.0.0.0 is any ip)
 - **SERVER_PORT**:Int - Port the rest api service will listen to.
+- **LOG_LEVEL**:String - Level of logs: critical, fatal, error, warning, warn, info, debug
 
 General config:
 
