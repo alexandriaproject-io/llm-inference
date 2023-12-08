@@ -5,14 +5,21 @@ import torch
 
 class LLMModel:
     def __init__(self, model_path, config):
+        self.isReady = False
         self.tokenizer = None
         self.model = None
         self.config = config
         self.model_path = model_path
         self.device = "cuda" if self.config["ENABLE_CUDA"] and torch.cuda.is_available() else "cpu"
         self.isBF16Supported = False if not self.config["ENABLE_CUDA"] else torch.cuda.is_bf16_supported()
-        self.isQuantized = self.config["LOAD_IN_8BIT"]
-        self.model_type = torch.bfloat16 if self.isBF16Supported else torch.float16
+        self.is8bitQuantized = self.config["LOAD_IN_8BIT"]
+
+        if self.is8bitQuantized:
+            self.model_type = None # 4bit and 8bit quantization defaults to its own parameters
+        elif self.device == "cuda":
+            self.model_type = torch.bfloat16 if self.isBF16Supported else torch.float16
+        else:
+            self.model_type = torch.float32
 
     def load_model(self):
         log.info(f"Target model: {self.model_path} using seed {self.config['MODEL_SEED']}")
@@ -20,7 +27,7 @@ class LLMModel:
         torch.manual_seed(self.config["MODEL_SEED"])
         log.info("Loading model from disk. Be patient this can take a while...")
 
-        low_mem_mode = self.isQuantized or self.config["LOW_CPU_MEM_USAGE"]
+        low_mem_mode = self.is8bitQuantized or self.config["LOW_CPU_MEM_USAGE"]
         device_map = None
         if low_mem_mode:
             device_map = 'cpu' if self.device == 'cpu' else self.config["TARGET_GPU_INDEX"]
@@ -29,6 +36,7 @@ class LLMModel:
             self.model_path,
             return_dict=True,
             load_in_8bit=self.isQuantized,
+            load_in_8bit=self.is8bitQuantized,
             device_map=device_map,
             torch_dtype=self.model_type,
             low_cpu_mem_usage=low_mem_mode
@@ -44,4 +52,5 @@ class LLMModel:
             self.model.to(self.device)
         log.info(f"Evaluating the model.")
         self.model.eval()
+        self.isReady = True
         log.info(f"Model is ready to go.")
