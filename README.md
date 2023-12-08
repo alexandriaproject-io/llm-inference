@@ -8,6 +8,8 @@ Install cuda SDK: \
 https://developer.nvidia.com/cuda-downloads \
 Select your system config and how you want to install the SDK.
 
+`NOTE: If you have 10xx series GPU you will require CUDA 11.8`
+
 ## Setup with local python
 
 **Create Virtual Environment:**\
@@ -23,6 +25,9 @@ https://pytorch.org/get-started/locally/ \
 
 **Install required packages:** \
 `pip install -r requirements.txt`
+
+**Install transformers with cache support** \
+`pip install git+https://github.com/huggingface/transformers.git`
 
 **Install Bitsandbytes** \
 Linux: `pip install bitsandbytes`
