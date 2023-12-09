@@ -117,13 +117,13 @@ def token_by_token_test_1000():
     print(f"1000 tokens at a time {execution_time} seconds")
 
 
-print("Running 1 token test generation")
+print("Running 10 token test generation")
 
 start_time = time.perf_counter()
-llm_model.generate_full(start_prompt, {"temperature": 0, "max_new_tokens": 50})
+llm_model.generate_full(start_prompt, {"temperature": 0, "max_new_tokens": 10})
 end_time = time.perf_counter()
 execution_time = end_time - start_time
-print(f"Test full pass: {execution_time} seconds")
+print(f"Test full pass: {execution_time} seconds - {10/execution_time} tokens/sec")
 
 print("")
 
