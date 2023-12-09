@@ -16,12 +16,10 @@ class LLMModel:
         self.is4bitQuantized = self.config["LOAD_IN_4BIT"]
         self.isQuantized = self.is8bitQuantized or self.is4bitQuantized
 
-        if self.isQuantized:
+        if self.isQuantized or self.device == "cpu":
             self.model_type = torch.float32
-        elif self.device == "cuda":
-            self.model_type = torch.bfloat16 if self.isBF16Supported else torch.float16
         else:
-            self.model_type = torch.float32
+            self.model_type = torch.bfloat16 if self.isBF16Supported else torch.float16
 
     def load_model(self):
         log.info(f"Target model: {self.model_path} using seed {self.config['MODEL_SEED']}")
@@ -126,7 +124,7 @@ class LLMModel:
 
         is_eos = outputs[0][-1] == self.tokenizer.eos_token_id
 
-        return response,  is_eos
+        return response, is_eos
 
     def generate_stream(self, prompt, stream_callback, finish_callback):
         (tokens, attention_mask) = self.tokenizer(prompt)
