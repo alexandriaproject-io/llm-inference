@@ -17,7 +17,7 @@ def full_gen_test():
     tokens, attention_mask, input_ids = llm_model.tokenize_prompt(start_prompt)
 
     start_time = time.perf_counter()
-    outputs = llm_model.generate(tokens, attention_mask, {"temperature": 0, "max_new_tokens": 1000})
+    outputs = llm_model.generate_cache(tokens, attention_mask, None, {"temperature": 0, "max_new_tokens": 1000})
     end_time = time.perf_counter()
     execution_time = end_time - start_time
     print(f"New full pass {execution_time} seconds")

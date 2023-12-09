@@ -103,7 +103,7 @@ class LLMModel:
     def generate_full(self, prompt, config):
         (tokens, attention_mask, input_ids) = self.tokenize_prompt(prompt)
 
-        outputs = self.generate_cache(tokens, attention_mask, None, config)
+        outputs, past_key_values = self.generate_cache(tokens, attention_mask, None, config)
         output_text = self.decode_outputs(outputs)
         response_start_index = len(prompt)
         response = output_text[response_start_index:].strip()
