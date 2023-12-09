@@ -4,37 +4,10 @@ import config
 import time
 import torch
 
-model_config = {
-    "ENABLE_CUDA": config.ENABLE_CUDA,
-    "LOAD_IN_8BIT": config.LOAD_IN_8BIT,
-    "LOW_CPU_MEM_USAGE": config.LOW_CPU_MEM_USAGE,
-    "TARGET_GPU_INDEX": config.TARGET_GPU_INDEX,
-    "MODEL_SEED": config.MODEL_SEED,
-    "ENABLE_USE_CACHE": config.ENABLE_USE_CACHE,
-    "MODEL_DEFAULT_NUM_BEAMS": config.MODEL_DEFAULT_NUM_BEAMS,
-    "MODEL_DEFAULT_DO_SAMPLE": config.MODEL_DEFAULT_DO_SAMPLE,
-    "MODEL_DEFAULT_TEMPERATURE": config.MODEL_DEFAULT_TEMPERATURE,
-    "MODEL_DEFAULT_TOP_P": config.MODEL_DEFAULT_TOP_P,
-    "MODEL_DEFAULT_TOP_K": config.MODEL_DEFAULT_TOP_K,
-    "MODEL_DEFAULT_MAX_NEW_TOKENS": config.MODEL_DEFAULT_MAX_NEW_TOKENS,
-    "MODEL_DEFAULT_REPETITION_PENALTY": config.MODEL_DEFAULT_REPETITION_PENALTY,
-    "MODEL_DEFAULT_LENGTH_PENALTY": config.MODEL_DEFAULT_LENGTH_PENALTY,
-}
 
-llm_model = LLMModel(config.MODEL_PATH, model_config)
+llm_model = LLMModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
 llm_model.load_model()
 llm_model.run_model()
-
-
-
-
-
-
-
-
-
-
-
 
 
 
