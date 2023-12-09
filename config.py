@@ -13,7 +13,6 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "info")
 MODEL_PATH = os.getenv("MODEL_PATH")
 ENABLE_CUDA = os.getenv("ENABLE_CUDA", "true").lower() == 'true'
 TARGET_GPU_INDEX = int(os.getenv("TARGET_GPU_INDEX", "0"))
-ENABLE_USE_CACHE = os.getenv("ENABLE_USE_CACHE", "true").lower() == 'true'
 LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "False").lower() == 'true'
 LOAD_IN_8BIT = os.getenv("LOAD_IN_8BIT", "False").lower() == 'true'
 LOAD_IN_4BIT = os.getenv("LOAD_IN_4BIT", "False").lower() == 'true'
@@ -39,7 +38,6 @@ BASE_MODEL_CONFIG = {
     "LOW_CPU_MEM_USAGE": LOW_CPU_MEM_USAGE,
     "TARGET_GPU_INDEX": TARGET_GPU_INDEX,
     "MODEL_SEED": MODEL_SEED,
-    "ENABLE_USE_CACHE": ENABLE_USE_CACHE,
     "MODEL_DEFAULT_NUM_BEAMS": MODEL_DEFAULT_NUM_BEAMS,
     "MODEL_DEFAULT_DO_SAMPLE": MODEL_DEFAULT_DO_SAMPLE,
     "MODEL_DEFAULT_TEMPERATURE": MODEL_DEFAULT_TEMPERATURE,

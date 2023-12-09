@@ -3,6 +3,12 @@ from logger import log
 import torch
 
 
+class NotReadyException(Exception):
+    def __init__(self, message="Component is not ready"):
+        self.message = message
+        super().__init__(self.message)
+
+
 class LLMModel:
     def __init__(self, model_path, config):
         self.isReady = False
@@ -67,34 +73,17 @@ class LLMModel:
         tokens = tokens.unsqueeze(0).to(self.device)
         return tokens, attention_mask, input_ids
 
-    def generate(self, tokens, attention_mask, config):
-        with torch.no_grad():
-            outputs = self.model.generate(
-                tokens,
-                attention_mask=attention_mask,
-                pad_token_id=self.tokenizer.pad_token_id,
-                eos_token_id=self.tokenizer.eos_token_id,
-                use_cache=self.config["ENABLE_USE_CACHE"],
-                num_beams=config.get("num_beams", self.config["MODEL_DEFAULT_NUM_BEAMS"]),
-                do_sample=config.get("do_sample", self.config["MODEL_DEFAULT_DO_SAMPLE"]),
-                temperature=config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"]),
-                top_p=config.get("top_p", self.config["MODEL_DEFAULT_TOP_P"]),
-                top_k=config.get("top_k", self.config["MODEL_DEFAULT_TOP_K"]),
-                max_new_tokens=config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"]),
-                repetition_penalty=config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"]),
-                length_penalty=config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"]),
-            )
-        return outputs
-
-    def generate_cache(self, input_ids, attention_mask, past_key_values, config):
-        with torch.no_grad():
+    def generate_cache(self, tokens, attention_mask, past_key_values, config):
+        if not self.isReady:
+            raise NotReadyException("Model not ready.Please Use Model.load_model(path, config) and Model.run_model()")
+        with torch.inference_mode():
             # Generate sequences with updated past_key_values
             model_output = self.model.generate(
-                input_ids=input_ids,
+                input_ids=tokens,
                 attention_mask=attention_mask,
                 past_key_values=past_key_values,
-                use_cache=True,  # Ensure caching is enabled
-                return_dict_in_generate=True,  # Return a dictionary containing past_key_values
+                use_cache=True,  # Ensure caching is enabled - HUGE performance hit on streaming tokens
+                return_dict_in_generate=True,  # Return a dictionary containing past_key_values - required for use_cache
                 pad_token_id=self.tokenizer.pad_token_id,
                 eos_token_id=self.tokenizer.eos_token_id,
                 num_beams=config.get("num_beams", self.config["MODEL_DEFAULT_NUM_BEAMS"]),
@@ -107,16 +96,14 @@ class LLMModel:
                 length_penalty=config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"]),
             )
 
-        # Extract sequences and updated past_key_values
-        sequences = model_output.sequences
-        new_past_key_values = model_output.past_key_values if 'past_key_values' in model_output else None
-
-        return sequences, new_past_key_values
+        if self.device == "cuda":
+            torch.cuda.empty_cache()
+        return model_output.sequences, model_output.get("past_key_values", None)
 
     def generate_full(self, prompt, config):
         (tokens, attention_mask, input_ids) = self.tokenize_prompt(prompt)
 
-        outputs = self.generate(tokens, attention_mask, config)
+        outputs = self.generate_cache(tokens, attention_mask, None, config)
         output_text = self.decode_outputs(outputs)
         response_start_index = len(prompt)
         response = output_text[response_start_index:].strip()
@@ -125,6 +112,3 @@ class LLMModel:
         is_eos = outputs[0][-1] == self.tokenizer.eos_token_id
 
         return response, is_eos
-
-    def generate_stream(self, prompt, stream_callback, finish_callback):
-        (tokens, attention_mask) = self.tokenizer(prompt)

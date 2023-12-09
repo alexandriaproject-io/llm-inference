@@ -60,7 +60,6 @@ LOG_LEVEL = info
 MODEL_PATH = /path/to/model 
 ENABLE_CUDA = true
 TARGET_GPU_INDEX = 0
-ENABLE_USE_CACHE = true
 LOW_CPU_MEM_USAGE = true
 LOAD_IN_8BIT = false
 LOAD_IN_4BIT = false
@@ -91,8 +90,6 @@ Rest API server config:
 - **TARGET_GPU_INDEX**:Int - Specify witch GPU to use to run the model when using LOW_CPU_MEM_USAGE set to true
     - Cuda SDK installation - https://developer.nvidia.com/cuda-zone
     - Only applicable when GPU is in use
-- **ENABLE_USE_CACHE**:Bool - Weather or not to use caching for already calculated tokens, useful when pushing one token
-  at a time
 - **LOW_CPU_MEM_USAGE**:Bool - Exchange slower loading for less memory usage when loading the model
 - **LOAD_IN_8BIT**:Bool - When true, loads the model in 8-bit precision instead of the standard 16-bit (
   bfloat16/float16), reducing RAM/GPU memory use but sacrificing some precision.
