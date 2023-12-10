@@ -62,8 +62,16 @@ class LLMModel:
         self.isReady = True
         log.info(f"Model is ready to go.")
 
+    def decode_output(self, output):
+        return self.tokenizer.decode(output, skip_special_tokens=True)
+
     def decode_outputs(self, outputs):
-        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        decoded_outputs = []
+        for output in outputs:
+            decoded_output = self.tokenizer.decode(output, skip_special_tokens=True)
+            decoded_outputs.append(decoded_output)
+            
+        return decoded_outputs
 
     def tokenize_prompt(self, prompt):
         input_ids = self.tokenizer.encode(prompt, add_special_tokens=True)
@@ -72,6 +80,20 @@ class LLMModel:
         attention_mask = (input_tensor != self.tokenizer.pad_token_id).int().unsqueeze(0).to(self.device)
         tokens = torch.tensor(input_ids).long().unsqueeze(0).to(self.device)
         return tokens, attention_mask, input_ids
+
+    def tokenize_prompts(self, prompts):
+        encoded_dict = self.tokenizer.batch_encode_plus(
+            prompts,
+            add_special_tokens=True,
+            padding='longest',
+            truncation=True,
+            return_attention_mask=True,
+            return_tensors='pt',
+        ).to(self.device)
+        return (
+            encoded_dict["input_ids"],
+            encoded_dict["attention_mask"]
+        )
 
     def generate_cache(self, tokens, attention_mask, past_key_values, config):
         if not self.isReady:
@@ -104,7 +126,7 @@ class LLMModel:
         (tokens, attention_mask, input_ids) = self.tokenize_prompt(prompt)
 
         outputs, past_key_values = self.generate_cache(tokens, attention_mask, None, config)
-        output_text = self.decode_outputs(outputs)
+        output_text = self.decode_output(outputs[0])
         response_start_index = len(prompt)
         response = output_text[response_start_index:].strip()
         # TODO - use tokens to cut and decode outputs instead of text cutting...
