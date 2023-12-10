@@ -50,6 +50,7 @@ class LLMModel:
         log.info("Model loaded.")
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, padding_size="left")
         self.tokenizer.pad_token = self.tokenizer.bos_token
+        self.tokenizer.add_special_tokens({"pad_token": self.tokenizer.bos_token})
         self.model.config.pad_token_id = self.model.config.bos_token_id
         log.info("Tokenizer loaded.")
 
@@ -63,32 +64,36 @@ class LLMModel:
         log.info(f"Model is ready to go.")
 
     def decode_output(self, output):
-        return self.tokenizer.decode(output, skip_special_tokens=True)
+        return self.tokenizer.decode(output, skip_special_tokens=True).rstrip()
 
     def decode_outputs(self, outputs):
         decoded_outputs = []
         for output in outputs:
-            decoded_output = self.tokenizer.decode(output, skip_special_tokens=True)
+            decoded_output = self.tokenizer.decode(output, skip_special_tokens=True).rstrip()
             decoded_outputs.append(decoded_output)
-            
+
         return decoded_outputs
 
     def tokenize_prompt(self, prompt):
-        input_ids = self.tokenizer.encode(prompt, add_special_tokens=True)
-        input_tensor = torch.tensor(input_ids)
+        encoded_dict = self.tokenizer.encode_plus(
+            prompt,
+            add_special_tokens=True,
+            return_attention_mask=True,
+            return_tensors='pt',
+        ).to(self.device)
 
-        attention_mask = (input_tensor != self.tokenizer.pad_token_id).int().unsqueeze(0).to(self.device)
-        tokens = torch.tensor(input_ids).long().unsqueeze(0).to(self.device)
-        return tokens, attention_mask, input_ids
+        return (
+            encoded_dict["input_ids"],
+            encoded_dict["attention_mask"]
+        )
 
     def tokenize_prompts(self, prompts):
         encoded_dict = self.tokenizer.batch_encode_plus(
             prompts,
             add_special_tokens=True,
-            padding='longest',
-            truncation=True,
             return_attention_mask=True,
             return_tensors='pt',
+            padding='longest',
         ).to(self.device)
         return (
             encoded_dict["input_ids"],
@@ -123,7 +128,7 @@ class LLMModel:
         return model_output.sequences, model_output.get("past_key_values", None)
 
     def generate_full(self, prompt, config):
-        (tokens, attention_mask, input_ids) = self.tokenize_prompt(prompt)
+        (tokens, attention_mask) = self.tokenize_prompt(prompt)
 
         outputs, past_key_values = self.generate_cache(tokens, attention_mask, None, config)
         output_text = self.decode_output(outputs[0])
