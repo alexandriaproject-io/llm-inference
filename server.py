@@ -93,7 +93,7 @@ def token_by_token_test_10():
 
 
 def token_by_token_test_1000():
-    tokens, attention_mask, input_ids = llm_model.tokenize_prompt(start_prompt)
+    tokens, attention_mask = llm_model.tokenize_prompt(start_prompt)
     start_time = time.perf_counter()
     outputs, past_key_values = llm_model.generate_cache(tokens, attention_mask, None,
                                                         {"temperature": 0, "max_new_tokens": 1000})

@@ -3,10 +3,27 @@ from logger import log
 import torch
 
 
+class BaseStreamer:
+    """
+    Base class from which `.generate()` streamers should inherit.
+    """
+
+    def put(self, value):
+        """Function that is called by `.generate()` to push new tokens"""
+        # print(value)
+
+    def end(self):
+        # print("end")
+        """Function that is called by `.generate()` to signal the end of generation"""
+
+
 class NotReadyException(Exception):
     def __init__(self, message="Component is not ready"):
         self.message = message
         super().__init__(self.message)
+
+
+streamer = BaseStreamer()
 
 
 class LLMModel:
@@ -23,7 +40,7 @@ class LLMModel:
         self.isQuantized = self.is8bitQuantized or self.is4bitQuantized
 
         if self.isQuantized or self.device == "cpu":
-            self.model_type = torch.float32
+            self.model_type = None
         else:
             self.model_type = torch.bfloat16 if self.isBF16Supported else torch.float16
 
@@ -32,11 +49,12 @@ class LLMModel:
         torch.cuda.manual_seed(self.config["MODEL_SEED"])
         torch.manual_seed(self.config["MODEL_SEED"])
         log.info("Loading model from disk. Be patient this can take a while...")
-
         low_mem_mode = self.isQuantized or self.config["LOW_CPU_MEM_USAGE"]
-        device_map = None
+
         if low_mem_mode:
             device_map = 'cpu' if self.device == 'cpu' else self.config["TARGET_GPU_INDEX"]
+        else:
+            device_map = None
 
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_path,
@@ -121,6 +139,7 @@ class LLMModel:
                 max_new_tokens=config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"]),
                 repetition_penalty=config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"]),
                 length_penalty=config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"]),
+                streamer=streamer
             )
 
         if self.device == "cuda":
