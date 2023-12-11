@@ -16,7 +16,8 @@ They only capture the idle usage that the inference will require.
 | **Float8 / 8Bit**  |             | -           | -               | Not supported on CPU |
 | **Float4 / 4Bit**  |             | -           | -               | Not supported on CPU | 
  `Note: quanitization requires GPU to run the model compression install Cuda version to run quanitized on CPU.` \
-A good alternative is to use https://github.com/ggerganov/llama.cpp instead.
+A good alternative is to use https://github.com/ggerganov/llama.cpp instead. \
+A guide we found for Windows: https://github.com/mpwang/llama-cpp-windows-guide
 
 
 ### GPU Inference Mode resources usage with LLAMA2 7B - **Idle** 
