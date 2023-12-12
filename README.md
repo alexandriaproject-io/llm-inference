@@ -23,7 +23,8 @@ Before we head out here is a list of system Memory and GPU requirements.
 ### Run with docker
 - **CPU Mode**
   - CPU - slow but reliable
-    - `docker run -d -p 5000:5000 myapp`
+    - `docker run --env-file https://raw.githubusercontent.com/alexandriaproject-io/llm-inference/main/.env.example --gpus all --name alexandria-project alexandria-project -v path/to/model:/usr/model`
+
 - **CUDA Mode**
   - Verify docker access:
     - `docker run --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark`
