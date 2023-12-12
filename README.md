@@ -5,38 +5,33 @@ Simple python code that can run inference on LLM models with rest api interface.
 
 # Setup
 Due to the variety of setups and the fact that each one requires different versions of PyTorch. \
-Before we head out here is a list of system Memory 
+Before we head out here is a list of system Memory and GPU requirements.
 
 [Resource requirements can be found here](docs/usage.md) 
  
 
 ### Setup Windows locally
-- [Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx )](docs/llm-windows-cuda-12.1.md)  
-  - Docker `docker run -d --gpus all -p 5000:5000 myapp`
+- [Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx )](docs/llm-windows-cuda-12.1.md)
 - [Cuda 11.8 ( for GTX 10xx series)](docs/llm-windows-cuda-11.8.md)
-  - Docker `docker run -d --gpus all -p 5000:5000 myapp`
 - [CPU - slow but reliable](docs/llm-windows-cpu.md)
-  - Docker `docker run -d -p 5000:5000 myapp`
+
+### Setup Linux locally
+- [Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx )](docs/llm-linux-cuda-12.1.md)
+- [Cuda 11.8 ( for GTX 10xx series)](docs/llm-linux-cuda-11.8.md)
+- [CPU - slow but reliable](docs/llm-linux-cpu.md)
 
 ### Run with docker
-
-**CUDA Mode**
-
-- Verify docker access:
-  - `docker run --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark`
-    - If not please install:
-      - Linux: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-with-apt
-    - 
-- Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx ) 
-  - `docker run -d --gpus all -p 5000:5000 myapp`
-- Cuda 11.8 ( for GTX 10xx series)
-  - `docker run -d --gpus all -p 5000:5000 myapp`
-
-**CPU Mode**
-- CPU - slow but reliable](docs/llm-windows-cpu.md
-  - `docker run -d -p 5000:5000 myapp`
-
-
+- **CPU Mode**
+  - CPU - slow but reliable](docs/llm-windows-cpu.md
+    - `docker run -d -p 5000:5000 myapp`
+- **CUDA Mode**
+  - Verify docker access:
+    - `docker run --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark`
+      - If not please install https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+  - Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx ) 
+    - `docker run -d --gpus all -p 5000:5000 myapp`
+  - Cuda 11.8 ( for GTX 10xx series)
+    - `docker run -d --gpus all -p 5000:5000 myapp`
 
 
 ## .env values and parameters
