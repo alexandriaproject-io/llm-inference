@@ -22,7 +22,7 @@ Before we head out here is a list of system Memory and GPU requirements.
 
 ### Run with docker
 - **CPU Mode**
-  - CPU - slow but reliable](docs/llm-windows-cpu.md
+  - CPU - slow but reliable
     - `docker run -d -p 5000:5000 myapp`
 - **CUDA Mode**
   - Verify docker access:
