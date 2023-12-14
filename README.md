@@ -13,7 +13,7 @@ Simple python code that can run inference on LLM models with rest api interface.
 
 Want to know how this service works?
 - LLM Service **Architecture**: [Dark mode](docs/architecture-dark.md) / [Light mode](docs/architecture-light.md)
-- LLM Service **Rest API** UML: [Dark mode](docs/rest-api-uml-light.md) / [Light mode](docs/rest-api-uml-dark.md)
+- LLM Service **Rest API** UML: [Dark mode](docs/rest-api-uml-dark.md) / [Light mode](docs/rest-api-uml-light.md)
 - LLM Service **WebSocket** UML: []
 - 
 ## Run with locally
