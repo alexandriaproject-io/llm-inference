@@ -1,4 +1,4 @@
-# Large Language Model Inference Service Documentation
+# Large Language Model Inference Service REST API Flow Documentation
 
 The LLM Inference Service provides two primary endpoints for generating text: a single prompt endpoint and a batch prompt endpoint. The service architecture is designed to handle requests efficiently and return generated text through HTTP streaming or in a full response.
  

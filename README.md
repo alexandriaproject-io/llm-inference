@@ -14,7 +14,7 @@ Simple python code that can run inference on LLM models with rest api interface.
 Want to know how this service works?
 - [LLM Service **Architecture**](docs/architecture.md)
 - [LLM Service **Rest API** UML](docs/rest-api-uml.md)
-- [LLM Service **WebSocket** UML]()
+- [LLM Service **WebSocket** UML](docs/websocket-uml.md)
 
 ## Run with locally
 
