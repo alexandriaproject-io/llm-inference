@@ -4,7 +4,7 @@ This architecture is specifically designed to maximize the efficiency and throug
 
 ## LLM Inference Architecture diagram
 
-![Alt text](diagrams/llm-inference-diagram-dark.svg)
+![Alt text](diagrams/llm-inference-diagram-auto.svg)
 
 ## Overview
 The architecture of our service is designed to support both REST API and WebSocket interfaces for efficient external communication and control. Despite the apparent complexity, this structure stems from the intrinsic functioning of AI inference, particularly in handling parallel prompts.
