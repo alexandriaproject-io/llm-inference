@@ -3,24 +3,26 @@
 Simple python code that can run inference on LLM models with rest api interface.
 
 
-# Setup
+
+
+## Setup
 Due to the variety of setups and the fact that each one requires different versions of PyTorch. \
 Before we head out here is a list of system Memory and GPU requirements.
 
-[Resource requirements can be found here](docs/usage.md) 
+- [Resource requirements can be found here](docs/usage.md) 
  
 
-### Setup Windows locally
+**Setup Windows locally**
 - [Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx )](docs/llm-windows-cuda-12.1.md)
 - [Cuda 11.8 ( for GTX 10xx series)](docs/llm-windows-cuda-11.8.md)
 - [CPU - slow but reliable](docs/llm-windows-cpu.md)
 
-### Setup Linux locally
+**Setup Linux locally**
 - [Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx )](docs/llm-linux-cuda-12.1.md)
 - [Cuda 11.8 ( for GTX 10xx series)](docs/llm-linux-cuda-11.8.md)
 - [CPU - slow but reliable](docs/llm-linux-cpu.md)
 
-### Run with docker
+**Run with docker**
 - **CPU Mode**
   - CPU - slow but reliable
     - `docker run -d -p 5000:5000 myapp`
@@ -65,11 +67,9 @@ You can find the example file here [.env.example](.env.example)
 | **MODEL_DEFAULT_TEMPERATURE**       | 1.0               | Any Float    | Hyperparameter that controls the randomness of predictions, the higher the more random.                                                                                                   |
 | **MODEL_DEFAULT_TOP_P**       |      1.0              |     Any Float         |    Parameter used for nucleus sampling, controlling the randomness of output by only considering the smallest set of words whose cumulative probability exceeds the value p, thereby filtering out less likely words.                                                                                                                                                                                       |
 | **MODEL_DEFAULT_TOP_K**       |       50            |     Any Int           |       Parameter that limits the selection to the top k most probable next words, balancing the randomness and predictability of the generated text.                                                                                                                                                                                    |
-
  
 ### Default generation limits and penalties:
- 
- 
+
 | **Variable Name** | **Default Value** | **values**                    | **Description**                                                                                                                                                                   |
 |-------------------|-------------------|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **MODEL_DEFAULT_MAX_NEW_TOKENS**       | 2096              | Any Int | Max **new** tokens to generate per prompt request depending on the model capabilites.                                                                                             |

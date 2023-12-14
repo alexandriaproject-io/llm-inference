@@ -15,6 +15,7 @@ They only capture the idle usage that the inference will require.
 | **BF16 / Float16** | -           | -           | -               | Not supported on CPU |
 | **Float8 / 8Bit**  |             | -           | -               | Not supported on CPU |
 | **Float4 / 4Bit**  |             | -           | -               | Not supported on CPU | 
+
  `Note: quanitization requires GPU to run the model compression install Cuda version to run quanitized on CPU.` \
 A good alternative is to use https://github.com/ggerganov/llama.cpp instead. \
 A guide we found for Windows: https://github.com/mpwang/llama-cpp-windows-guide
@@ -28,6 +29,7 @@ A guide we found for Windows: https://github.com/mpwang/llama-cpp-windows-guide
 | **BF16 / Float16** | 3GB | 14GB      | ~ 45 tok / sec          | Linux and Windows      |
 | **Float8 / 8Bit**  | 3GB | 9GB       | ~ 7 tok / sec           | Linux and Windows      |
 | **Float4 / 4Bit**  | 3GB | 6GB       | ~ 30 tok / sec          | Linux only |
+
 - `Note: 8/4 Bit quanitization requires GPU to run the model compression install Cuda version to run quanitized on CPU`
 
 [Back to main doc](../README.md)
