@@ -1,13 +1,35 @@
-# Service API Inference Workflow
+# Large Language Model Inference Service Documentation
 
-## Overview
+The LLM Inference Service provides two primary endpoints for generating text: a single prompt endpoint and a batch prompt endpoint. The service architecture is designed to handle requests efficiently and return generated text through HTTP streaming or in a full response.
+ 
+## Endpoints
+- `POST /api/generate-one`: For generating text from a single prompt.
+- `POST /api/generate-batch`: For generating text from multiple prompts in a batch.
 
-The following UML sequence diagram illustrates the interaction flow between the client and our Language Learning Model (
-LLM) Inference Service when generating responses via our API.
+## Response Codes
+Both endpoints use standard HTTP response codes to indicate the status of a request:
+
+- `200 OK`: The request has been successfully processed, and the response body contains the generated text, which was concluded because the end of the sequence (`eos`) was reached.
+- `206 Partial Content`: This status code is returned when a response is streamed back in chunks or if the request has been partially fulfilled due to reaching the maxLength limit specified in the request.
+![Single Inference UML Diagram](path-to-single-inference-image)
+  
+## HTTP Streaming
+The single endpoint (`POST /api/generate-one`) supports HTTP streaming, allowing clients to receive the response in a streamed fashion as the text is being generated. This method is especially useful when dealing with large texts or when real-time processing is desired.
+
+## Batch Processing
+The batch endpoint (`POST /api/generate-batch`) does not support HTTP streaming. When using this endpoint, the entire response, which includes generated text for all prompts in the batch, is returned once processing is complete.
+
+## Notes on Service Behavior
+- The service returns text directly in the response body, not wrapped in JSON.
+- HTTP streaming, as depicted in the UML sequence diagrams, represents the service sending data in chunks, not the `206 Partial Content` responses.
+
+## UML Diagrams
+
+### Single Prompt Generation Flow
 
 ![LLM Inference Service Workflow](diagrams/rest-api-single-prompt-light.svg)
 
-## Workflow Description
+### Workflow Description
 
 - **HTTP Request (POST /api/generate-one)**: The client initiates the workflow by sending a POST request to
   the `/api/generate-one` endpoint. The request payload must include a unique `id` for the session, the `prompt` for the
@@ -26,7 +48,7 @@ LLM) Inference Service when generating responses via our API.
 - **End of Request**: The transaction concludes when the full response has been delivered to the client, marked by the
   end of the request.
 
-## API Response Examples
+### API Response Examples
 
 The API responds with text based on the given prompt. Below are two examples:
 
@@ -35,18 +57,13 @@ The API responds with text based on the given prompt. Below are two examples:
 
 - For a prompt with `id: 456`, with a `maxLength` of 4, the service might return: `Response: "In the garden where"`
 
-## Implementation Notes
+### Implementation Notes
 
 - Responses are dependent on the `prompt` and `maxLength` parameters.
 - The service supports single prompt inference; streaming is not available for multiple prompts.
 - Ensure your API calls handle both full responses and partial content scenarios gracefully.
 
-## Batch Processing API Inference Workflow
-
-### Overview
-
-In addition to single prompt processing, our service also supports batch processing, allowing multiple prompts to be processed in a single API call. The UML diagram below depicts the batch processing workflow.
-
+## Batch Prompt Generation Flow
 ![LLM Batch Inference Service Workflow](diagrams/rest-api-batch-prompt-light.svg)
 
 ### Batch Workflow Description
@@ -86,7 +103,7 @@ Batch Response:
 ]
 ```
 
-## Implementation Notes for Batch Processing
+### Implementation Notes for Batch Processing
 - The batch endpoint is best used for applications requiring the processing of multiple prompts where immediate response for each is not critical.
 - Streaming of responses is not supported in batch mode; the entire response set is delivered at once.
 - Ensure that your implementation can parse and handle an array of responses, associating each response with its corresponding prompt.
