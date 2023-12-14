@@ -11,6 +11,9 @@ Simple python code that can run inference on LLM models with rest api interface.
     - [Generation config](#default-generation-config)
     - [Generation limits config](#default-generation-limits-and-penalties)
 
+Want to know how this service works?
+- [Service Architecture diagram](docs/architecture.md)
+
 ## Run with locally
 
 Due to the variety of setups and the fact that each one requires different versions of PyTorch. \
