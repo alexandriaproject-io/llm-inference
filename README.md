@@ -12,9 +12,10 @@ Simple python code that can run inference on LLM models with rest api interface.
     - [Generation limits config](#default-generation-limits-and-penalties)
 
 Want to know how this service works?
-- LLM Service Architecture: [Dark mode](docs/architecture-dark.md) / [Light mode](docs/architecture-light.md)
-- LLM Service Rest API UML: []
-
+- LLM Service **Architecture**: [Dark mode](docs/architecture-dark.md) / [Light mode](docs/architecture-light.md)
+- LLM Service **Rest API** UML: []
+- LLM Service **WebSocket** UML: []
+- 
 ## Run with locally
 
 Due to the variety of setups and the fact that each one requires different versions of PyTorch. \
