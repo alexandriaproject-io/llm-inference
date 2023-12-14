@@ -27,7 +27,7 @@ The batch endpoint (`POST /api/generate-batch`) does not support HTTP streaming.
 
 ### Single Prompt Generation Flow
 
-![LLM Inference Service Workflow](diagrams/rest-api-single-prompt-light.svg)
+![LLM Inference Service Workflow](diagrams/rest-api-single-prompt.svg)
 
 ### Workflow Description
 
@@ -64,7 +64,7 @@ The API responds with text based on the given prompt. Below are two examples:
 - Ensure your API calls handle both full responses and partial content scenarios gracefully.
 
 ## Batch Prompt Generation Flow
-![LLM Batch Inference Service Workflow](diagrams/rest-api-batch-prompt-light.svg)
+![LLM Batch Inference Service Workflow](diagrams/rest-api-batch-prompt.svg)
 
 ### Batch Workflow Description
 
