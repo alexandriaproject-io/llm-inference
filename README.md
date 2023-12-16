@@ -67,11 +67,13 @@ You can find the example file here [.env.example](.env.example)
 
 ### Rest API server config:
 
-| **Variable Name** | **Default Value** | **values**                                         | **Description**                                                   |
-|-------------------|-------------------|----------------------------------------------------|-------------------------------------------------------------------|
-| **SERVER_HOST**   | 127.0.0.1         | 0.0.0.0 - 255.255.255.255                          | IP address the port will listen to (0.0.0.0 is any ip).           |
-| **SERVER_PORT**   | 5050              | 1-65535                                            | Port the rest api service will listen to.                         |
-| **LOG_LEVEL**     | info              | critical, fatal, error, warning, warn, info, debug | Level of logs: critical, fatal, error, warning, warn, info, debug |
+| **Variable Name**  | **Default Value** | **values**                                                    | **Description**                                                                                                                                 |
+|--------------------|-------------------|---------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| **SERVER_HOST**    | 127.0.0.1         | 0.0.0.0 - 255.255.255.255                                     | IP address the port will listen to (0.0.0.0 is any ip).                                                                                         |
+| **SERVER_PORT**    | 5050              | 1-65535                                                       | Port the rest api service will listen to.                                                                                                       |
+| **LOG_LEVEL**      | info              | critical, fatal, error, warning, warn, info, debug            | Level of logs: critical, fatal, error, warning, warn, info, debug                                                                               |
+| **MAX_CACHE_SIZE** | 16384             | 1-2147483647                                                  | Max cached prompt executions                                                                                                                    |
+| **MAX_CACHE_TTL**  | 3600              | 1-2147483647                                                  | **Cache TTL** - after this time from the last **request_id/request_ids** execution the cache will be cleared. Cache is also **cleared** with **EOS** is reached |
 
 ### General config:
 

@@ -7,7 +7,8 @@ load_dotenv()
 SERVER_HOST = os.getenv("SERVER_HOST", "127.0.0.1")
 SERVER_PORT = int(os.getenv("SERVER_PORT", "5050"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "info")
-
+MAX_CACHE_SIZE = int(os.getenv("MAX_CACHE_SIZE", "16384"))
+MAX_CACHE_TTL = int(os.getenv("MAX_CACHE_TTL", "3600"))
 
 # Model inference configuration
 MODEL_PATH = os.getenv("MODEL_PATH")
@@ -29,7 +30,6 @@ MODEL_DEFAULT_TOP_K = int(os.getenv("MODEL_DEFAULT_TOP_K", "50"))
 MODEL_DEFAULT_MAX_NEW_TOKENS = int(os.getenv("MODEL_DEFAULT_MAX_NEW_TOKENS", "4096"))
 MODEL_DEFAULT_REPETITION_PENALTY = float(os.getenv("MODEL_DEFAULT_REPETITION_PENALTY", "1"))
 MODEL_DEFAULT_LENGTH_PENALTY = float(os.getenv("MODEL_DEFAULT_LENGTH_PENALTY", "1"))
-
 
 BASE_MODEL_CONFIG = {
     "ENABLE_CUDA": ENABLE_CUDA,
