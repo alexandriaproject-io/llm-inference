@@ -1,5 +1,5 @@
 import logging
-import config
+from src.config import config
 
 # Convert the string log level to the corresponding logging constant
 log_level = getattr(logging, config.LOG_LEVEL.upper(), None)

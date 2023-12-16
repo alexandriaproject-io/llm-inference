@@ -1,4 +1,4 @@
-from ..models.llm_model_class import LLMModel, TokenStreamer
+from src.models.llm_model_class import LLMModel, TokenStreamer
 import config
 import queue
 import threading
