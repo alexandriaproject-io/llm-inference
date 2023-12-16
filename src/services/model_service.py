@@ -10,8 +10,11 @@ llm_model: LLMModel
 execution_queue = queue.Queue()
 response_queue = queue.Queue()
 event_queues = {}
-
 cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
+
+
+def do_stuff():
+    return "ok"
 
 
 class LLMEventTypes(enum.Enum):
@@ -43,8 +46,8 @@ def handle_model_responses():
         event = response_queue.get()
         if event is None:  # Use None as a signal to stop the thread
             break
-        if event.execution_id in event_queues:
-            event_queues[event.execution_id].put(event)
+        if event["execution_id"] in event_queues:
+            event_queues[event["execution_id"]].put(event)
 
 
 def handle_model_generation():
@@ -96,8 +99,11 @@ def handle_model_generation():
 def prepare_prompts(prompts):
     global llm_model
     tokens, masks = llm_model.tokenize_prompts(prompts)
-    values = None
-    return {tokens, masks, values}
+    return {
+        "tokens": tokens,
+        "masks": masks,
+        "values": None
+    }
 
 
 def add_prompts_execution(request_ids, prompts, request_config):
@@ -110,9 +116,9 @@ def add_prompts_execution(request_ids, prompts, request_config):
     execution_queue.put({
         "request_ids": request_ids,
         "execution_id": execution_id,
-        "tokens": target.tokens,
-        "masks": target.masks,
-        "values": target.values,
+        "tokens": target["tokens"],
+        "masks": target["masks"],
+        "values": target["values"],
         "config": request_config
     })
 

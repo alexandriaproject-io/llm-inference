@@ -19,7 +19,6 @@ def is_valid_config(generation_config):
     return True
 
 
-
 @swagger_path('src/controllers/swagger/generate_one.yml')
 async def generate_one(request):
     try:
@@ -27,7 +26,7 @@ async def generate_one(request):
         request_id = data.get('request_id')
         prompt = data.get('prompt')
         generation_config = data.get('generation_config', {})
-
+        only_new_tokens = isinstance(data.get("only_new_tokens"), bool) and data["only_new_tokens"]
         # Validate payload
         if ((not request_id or not isinstance(request_id, str))
                 or (not prompt or not isinstance(prompt, str))
@@ -42,19 +41,21 @@ async def generate_one(request):
         )
         await response.prepare(request)
 
-        response_queue = add_prompts_execution([request_id],[prompt],generation_config)
+        response_queue = add_prompts_execution([request_id], [prompt], generation_config)
         while True:
             event = response_queue.get()
-            print(event)
-            if event.type == LLMEventTypes.COMPLETE:
+            if event["type"] == LLMEventTypes.START:
+                print(f"Handing request {request_id}")
+            elif not only_new_tokens and event["type"] == LLMEventTypes.INITIALIZED:
+                print(f"Handing request init {request_id}")
+            elif event["type"] == LLMEventTypes.PROGRESS:
+                print(f"Handing request progress {request_id}")
+            elif event["type"] == LLMEventTypes.COMPLETE:
                 break
-
+        await response.write_eof()
         return response
     except json.JSONDecodeError:
         return web.Response(text="Invalid JSON format", status=400)
-
-
-
 
 
 @swagger_path('src/controllers/swagger/generate_batch.yml')

@@ -1,10 +1,10 @@
 from aiohttp import web
 from routes.routes import set_routes
-from services.model_service import init_llm_model
+import src.services.model_service as model_service
 import aiohttp_swagger
 
 if __name__ == '__main__':
-    init_llm_model()
+    model_service.init_llm_model()
 
     app = web.Application()
     set_routes(app)

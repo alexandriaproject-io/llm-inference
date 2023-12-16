@@ -22,6 +22,9 @@ parameters:
         prompt:
           type: string
           example: "Generate a very very long poem about 1000 cats"
+        only_new_tokens:
+          type: boolean
+          example: false
         generation_config:
           type: object
           properties:
