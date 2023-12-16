@@ -1,5 +1,5 @@
 from aiohttp import web
-from routes.routes import set_routes
+from src.routes.routes import set_routes
 import src.services.model_service as model_service
 import aiohttp_swagger
 

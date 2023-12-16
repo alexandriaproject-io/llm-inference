@@ -1,6 +1,7 @@
 from aiohttp import web
 from aiohttp_swagger import swagger_path
 import json
+import time
 from src.services.model_service import add_prompts_execution, LLMEventTypes
 
 
@@ -40,6 +41,8 @@ async def generate_one(request):
             headers={'Content-Type': 'text/plain'},
         )
         await response.prepare(request)
+        counter = 0
+        start_time = time.perf_counter()
 
         response_queue = add_prompts_execution([request_id], [prompt], generation_config)
         while True:
@@ -49,9 +52,14 @@ async def generate_one(request):
             elif not only_new_tokens and event["type"] == LLMEventTypes.INITIALIZED:
                 print(f"Handing request init {request_id}")
             elif event["type"] == LLMEventTypes.PROGRESS:
-                print(f"Handing request progress {request_id}")
+                counter+=1
+             #   print(f"Handing request progress {request_id}")
             elif event["type"] == LLMEventTypes.COMPLETE:
                 break
+
+        end_time = time.perf_counter()
+        diff = end_time - start_time
+        print(f"Execution of {counter} tokens was {diff} seconds at {counter/diff} t/s")
         await response.write_eof()
         return response
     except json.JSONDecodeError:
