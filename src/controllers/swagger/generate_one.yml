@@ -1,35 +1,69 @@
-  tags:
-    - generation
-  summary: Generate Single Response
-  description: Generates a response based on the provided prompt and returns 200 / 206 status.
-  operationId: generateOne
-  produces:
-    - application/json
-  parameters:
-    - in: body
-      name: body
-      description: Payload required for generation
-      required: true
-      schema:
-        type: object
-        required:
-          - request_id
-          - prompt
-        properties:
-          request_id:
-            type: string
-          prompt:
-            type: string
-  responses:
-    "200":
-      description: Successful operation LLM signaled end of generation
-      schema:
-        type: string
-    "206":
-      description: Successful operation - ended due to max_length
-      schema:
-        type: string
-    "400":
-      description: Invalid input
-      schema:
-        type: string
+tags:
+  - generation
+summary: Generate Single Response
+description: 'Generates a response based on the provided prompt and returns 200 status if the message has no more generation or  206 status if the generation was stopped due to max length.'
+operationId: generateOne
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    description: Payload required for generation
+    required: true
+    schema:
+      type: object
+      required:
+        - request_id
+        - prompt
+      properties:
+        request_id:
+          type: string
+          example: "YmFzZTY0"
+        prompt:
+          type: string
+          example: "Generate a very very long poem about 1000 cats"
+        generation_config:
+          type: object
+          properties:
+            num_beams:
+              type: number
+              example: 1
+            do_sample:
+              type: boolean
+              example: false
+            temperature:
+              type: number
+              format: float
+              example: 1.0
+            top_p:
+              type: number
+              format: float
+              example: 1.0
+            top_k:
+              type: number
+              format: number
+              example: 1.0
+            max_new_tokens:
+              type: number
+              example: 2096
+            repetition_penalty:
+              type: number
+              format: float
+              example: 1
+            length_penalty:
+              type: number
+              format: float
+              example: 1
+responses:
+  "200":
+    description: Successful operation LLM signaled end of generation
+    schema:
+      type: stream
+  "206":
+    description: Successful operation - ended due to max_length
+    schema:
+      type: string
+  "400":
+    description: Invalid input
+    schema:
+      type: string
