@@ -1,14 +1,16 @@
 from flask import Flask, request, jsonify
-from llm_model_handler import LLMModel
 import config
 import time
 import torch
+import queue
+from src.models.llm_model_class import LLMModel, TokenStreamer
 
 llm_model = LLMModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
 llm_model.load_model()
 llm_model.run_model()
 
 start_prompt = "Generate a very very long poem about 1000 cats"
+execution_queue = queue.Queue()
 
 
 def full_gen_test():
@@ -35,11 +37,24 @@ def token_by_token_test():
     tokens, attention_mask = llm_model.tokenize_prompt(start_prompt)
 
     start_time = time.perf_counter()
-    while True:
-        # Generate output using the provided function
-        outputs, past_key_values = llm_model.generate_cache(tokens, attention_mask, past_key_values,
-                                                            {"temperature": 0, "max_new_tokens": 1})
 
+    m_execution_time = 0
+    execution_queue.put({
+        "tokens": tokens,
+        "attention_mask": attention_mask,
+        "past_key_values": None
+    })
+    while True:
+        req = execution_queue.get()
+
+        # Generate output using the provided function
+        outputs, past_key_values = llm_model.generate_cache(
+            req["tokens"],
+            req["attention_mask"],
+            req["past_key_values"],
+            {"temperature": 0, "max_new_tokens": 1})
+
+        m_start_time = time.perf_counter()
         # Extract the last token from the sequence
         next_token_id = outputs[:, -1].item()
         generated_sequence.append(next_token_id)
@@ -48,15 +63,22 @@ def token_by_token_test():
         if next_token_id == llm_model.tokenizer.eos_token_id:
             break
 
+
         # Update tokens for the next iteration (append the new token)
-        tokens = torch.cat((tokens, outputs[:, -1].unsqueeze(0)), dim=1)
         attention_mask = torch.cat((attention_mask, torch.ones((attention_mask.shape[0], 1)).to(attention_mask.device)),
                                    dim=1)
+        m_execution_time += time.perf_counter() - m_start_time
+
+        execution_queue.put({
+            "tokens": outputs,
+            "attention_mask": attention_mask,
+            "past_key_values": past_key_values
+        })
 
     end_time = time.perf_counter()
     execution_time = end_time - start_time
     print(
-        f"1 token at a time {execution_time} seconds - {len(generated_sequence)} tokens - {len(generated_sequence) / execution_time} t/s")
+        f"1 token at a time {m_execution_time} / {execution_time} seconds - {len(generated_sequence)} tokens - {len(generated_sequence) / execution_time} t/s")
     return len(generated_sequence) / execution_time
 
 
@@ -79,7 +101,7 @@ def token_by_token_test_10():
             break
 
         # Update tokens for the next iteration (append the new tokens)
-        tokens = torch.cat((tokens, new_tokens.unsqueeze(0)), dim=1)
+        tokens = outputs  # torch.cat((tokens, new_tokens.unsqueeze(0)), dim=1)
         # Update attention mask for the new tokens
         attention_mask = torch.cat((attention_mask, torch.ones((1, new_tokens.shape[0])).to(attention_mask.device)),
                                    dim=1)
@@ -140,7 +162,7 @@ def batch_tokens(use_second_prompt, max_count):
                         out_len -= 10
                         break
                 else:
-                    new_line_count=0
+                    new_line_count = 0
         output_length += out_len
 
     for input_token in tokens:
