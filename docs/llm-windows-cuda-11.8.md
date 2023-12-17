@@ -34,6 +34,6 @@ Select your Windows version and installation method then install.
 
 - Create `.env` file based on `.env.example`
   - Change the Model path and config then Run the server:
-    - `python server.py`
+    - `python main.py --multiprocess`
 
 [Back to main doc](../README.md)

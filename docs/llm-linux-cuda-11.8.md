@@ -34,6 +34,6 @@ Select your Linux version and installation method follow the installation instru
 
 - Create `.env` file based on `.env.example`
   - Change the Model path and config then Run the server:
-    - `python3 server.py`
+    - `python3 main.py --multiprocess`
 
 [Back to main doc](../README.md)

@@ -12,5 +12,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install bitsandbytes
 RUN pip install bitsandbytes
 
-# Run server.py when the container launches
-CMD ["python", "server.py"]
+# Run main.py when the container launches
+CMD ["python", "main.py", "--multiprocess"]

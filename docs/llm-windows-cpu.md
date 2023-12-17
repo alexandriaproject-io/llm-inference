@@ -28,6 +28,6 @@ This is a short guide to setup llm-inference project to run on your Windows mach
 
 - Create `.env` file based on `.env.example`
   - Change the Model path and config then Run the server:
-    - `python server.py`
+    - `python main.py --multiprocess`
 
 [Back to main doc](../README.md)
