@@ -6,16 +6,6 @@ import enum
 import uuid
 from cachetools import TTLCache
 
-llm_model: LLMModel
-execution_queue = queue.Queue()
-response_queue = queue.Queue()
-event_queues = {}
-cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
-
-
-def do_stuff():
-    return "ok"
-
 
 class LLMEventTypes(enum.Enum):
     START = 1
@@ -28,6 +18,25 @@ class LLMInternalEventTypes(enum.Enum):
     START = 1
     PROGRESS = 4
     COMPLETE = 5
+
+
+llm_model: LLMModel
+execution_queue = queue.Queue()
+response_queue = queue.Queue()
+event_queues = {}
+cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
+
+
+class ResponseStreamer(BaseStreamer):
+    def __init__(self, request_ids, execution_id):
+        self.request_ids = request_ids
+        self.execution_id = execution_id
+
+    def put(self, value):
+        progress_put_in_queue(self.request_ids, self.execution_id, value)
+
+    def end(self):
+        return
 
 
 def request_ids_to_cache_id(request_ids):
@@ -79,24 +88,39 @@ def init_llm_model():
 
 def handle_model_responses():
     global cache
+    global event_queues
+    global llm_model
     while True:
         event = response_queue.get()
         if event is None:  # Use None as a signal to stop the thread
             break
-        if event["execution_id"] in event_queues:
-            event_queues[event["execution_id"]].put(event)
+        if not event["execution_id"] in event_queues:
+            continue;
 
+        if event["type"] == LLMInternalEventTypes.START:
+            event_queues[event["execution_id"]].put({
+                "request_ids": event["request_ids"],
+                "type": LLMEventTypes.START
+            })
+        elif event["type"] == LLMInternalEventTypes.PROGRESS:
+            event_queues[event["execution_id"]].put({
+                "request_ids": event["request_ids"],
+                "type": LLMEventTypes.INITIALIZED if event["tokens"].dim() == 2 else LLMEventTypes.PROGRESS,
+                "text": llm_model.decode_outputs(event["tokens"])
+            })
+        elif event["type"] == LLMInternalEventTypes.COMPLETE:
+            event_queues[event["execution_id"]].put({
+                "request_ids": event["request_ids"],
+                "type": LLMEventTypes.COMPLETE,
+                "text": llm_model.decode_outputs(event["sequences"])
+            })
+            cache_id = request_ids_to_cache_id(event["request_ids"])
 
-class ResponseStreamer(BaseStreamer):
-    def __init__(self, request_ids, execution_id):
-        self.request_ids = request_ids
-        self.execution_id = execution_id
-
-    def put(self, value):
-        progress_put_in_queue(self.request_ids, self.execution_id, value)
-
-    def end(self):
-        return
+            # cache[cache_id] = {
+            #     "tokens": event["sequences"],
+            #     "masks": None,  # event["masks"],     todo update masks!
+            #     "values": event["values"],
+            # }
 
 
 def handle_model_generation():
@@ -117,7 +141,6 @@ def handle_model_generation():
             request["config"],
             stream
         )
-
         complete_put_in_queue(request["request_ids"], request["execution_id"], sequences, past_key_values)
 
 
