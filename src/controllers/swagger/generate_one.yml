@@ -45,7 +45,7 @@ parameters:
             top_k:
               type: number
               format: number
-              example: 1.0
+              example: 50
             max_new_tokens:
               type: number
               example: 2096
