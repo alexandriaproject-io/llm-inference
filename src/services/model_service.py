@@ -132,14 +132,13 @@ def handle_model_generation():
             break
 
         start_put_in_queue(request["request_ids"], request["execution_id"])
-        stream = ResponseStreamer(request["request_ids"], request["execution_id"])
 
         sequences, past_key_values = llm_model.generate_cache(
             request["tokens"],
             request["masks"],
             request.get("values", None),
             request["config"],
-            stream
+            ResponseStreamer(request["request_ids"], request["execution_id"]) if request["use_stream"] else None
         )
         complete_put_in_queue(request["request_ids"], request["execution_id"], sequences, past_key_values)
 
@@ -154,7 +153,7 @@ def prepare_prompts(prompts):
     }
 
 
-def add_prompts_execution(request_ids, prompts, request_config):
+def add_prompts_execution(request_ids, prompts, request_config, use_stream=True):
     global cache
     cache_id = request_ids_to_cache_id(request_ids)
     execution_id = uuid.uuid4()
@@ -167,7 +166,8 @@ def add_prompts_execution(request_ids, prompts, request_config):
         "tokens": target["tokens"],
         "masks": target["masks"],
         "values": target["values"],
-        "config": request_config
+        "config": request_config,
+        "use_stream": use_stream
     })
 
     return event_queues[execution_id]
