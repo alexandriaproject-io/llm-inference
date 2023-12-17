@@ -25,14 +25,14 @@ async def generate_one(request):
     try:
         data = await request.json()
         request_id = data.get('request_id')
-        prompt = data.get('prompt')
+        prompt = data.get('prompt', ' ')
         generation_config = data.get('generation_config', None)
         only_new_tokens = isinstance(data.get("only_new_tokens"), bool) and data["only_new_tokens"]
         # Validate payload
         if ((not request_id or not isinstance(request_id, str))
                 or (not prompt or not isinstance(prompt, str))
                 or (not is_valid_config(generation_config))):
-            return web.Response(text="Invalid request_id", status=400)
+            return web.Response(text="Invalid Data Format", status=400)
 
         # Process the request
         response = web.StreamResponse(
