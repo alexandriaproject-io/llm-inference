@@ -21,7 +21,7 @@ parameters:
           example: "YmFzZTY0"
         prompt:
           type: string
-          example: "Generate a very very long poem about 1000 cats"
+          example: "[INST] Generate a very very long poem about 1000 cats [/INST]\n\n"
         only_new_tokens:
           type: boolean
           example: false
