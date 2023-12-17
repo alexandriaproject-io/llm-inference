@@ -65,7 +65,7 @@ class LLMModel:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, padding_size="left")
         self.tokenizer.pad_token = self.tokenizer.bos_token
         self.tokenizer.add_special_tokens({"pad_token": self.tokenizer.bos_token})
-        self.model.config.pad_token_id = self.model.config.bos_token_id
+        self.model.generation_config.pad_token_id = self.model.config.bos_token_id
         log.info("Tokenizer loaded.")
 
     def run_model(self):
