@@ -12,6 +12,7 @@ Simple python code that can run inference on LLM models with rest api interface.
     - [Generation limits config](#default-generation-limits-and-penalties)
 
 Want to know how this service works?
+
 - [LLM Service **Architecture**](docs/architecture.md)
 - [LLM Service **Rest API** UML](docs/rest-api-uml.md)
 - [LLM Service **WebSocket** UML](docs/websocket-uml.md)
@@ -67,13 +68,13 @@ You can find the example file here [.env.example](.env.example)
 
 ### Rest API server config:
 
-| **Variable Name**  | **Default Value** | **values**                                                    | **Description**                                                                                                                                 |
-|--------------------|-------------------|---------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| **SERVER_HOST**    | 127.0.0.1         | 0.0.0.0 - 255.255.255.255                                     | IP address the port will listen to (0.0.0.0 is any ip).                                                                                         |
-| **SERVER_PORT**    | 5050              | 1-65535                                                       | Port the rest api service will listen to.                                                                                                       |
-| **LOG_LEVEL**      | info              | critical, fatal, error, warning, warn, info, debug            | Level of logs: critical, fatal, error, warning, warn, info, debug                                                                               |
-| **MAX_CACHE_SIZE** | 16384             | 1-2147483647                                                  | Max cached prompt executions                                                                                                                    |
-| **MAX_CACHE_TTL**  | 3600              | 1-2147483647                                                  | **Cache TTL** - after this time from the last **request_id/request_ids** execution the cache will be cleared. Cache is also **cleared** with **EOS** is reached |
+| **Variable Name**  | **Default Value** | **values**                                         | **Description**                                                                                                                                                 |
+|--------------------|-------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **SERVER_HOST**    | 127.0.0.1         | 0.0.0.0 - 255.255.255.255                          | IP address the port will listen to (0.0.0.0 is any ip).                                                                                                         |
+| **SERVER_PORT**    | 5050              | 1-65535                                            | Port the rest api service will listen to.                                                                                                                       |
+| **LOG_LEVEL**      | info              | critical, fatal, error, warning, warn, info, debug | Level of logs: critical, fatal, error, warning, warn, info, debug                                                                                               |
+| **MAX_CACHE_SIZE** | 16384             | 1-2147483647                                       | Max cached prompt executions                                                                                                                                    |
+| **MAX_CACHE_TTL**  | 3600              | 1-2147483647                                       | **Cache TTL** - after this time from the last **request_id/request_ids** execution the cache will be cleared. Cache is also **cleared** with **EOS** is reached |
 
 ### General config:
 
@@ -85,6 +86,7 @@ You can find the example file here [.env.example](.env.example)
 | **LOW_CPU_MEM_USAGE** | true              | true, false                   | Exchange slower loading for less memory usage when loading the model                                                                                                        |
 | **LOAD_IN_8BIT**      | false             | true, false                   | When true, loads the model in 8-bit precision instead of the standard 16-bit (bfloat16/float16), reducing RAM/GPU memory use but sacrificing some precision.                |
 | **LOAD_IN_4BIT**      | false             | true, false                   | **LINUX ONLY** When true, loads the model in 4-bit precision instead of the standard 16-bit (bfloat16/float16), reducing RAM/GPU memory use but sacrificing some precision. |
+| **SPACE_TOKEN_CHAR**  | ▁                 | String                        | Some models like LLama 2 remove leading space when decoding token by token, define this token to try and fix that behaviour on PROGRESS events                              |
 
 ### Default generation config:
 

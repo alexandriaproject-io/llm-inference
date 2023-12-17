@@ -17,6 +17,7 @@ TARGET_GPU_INDEX = int(os.getenv("TARGET_GPU_INDEX", "0"))
 LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "False").lower() == 'true'
 LOAD_IN_8BIT = os.getenv("LOAD_IN_8BIT", "False").lower() == 'true'
 LOAD_IN_4BIT = os.getenv("LOAD_IN_4BIT", "False").lower() == 'true'
+SPACE_TOKEN_CHAR = os.getenv("SPACE_TOKEN_CHAR")
 
 # Token generation configuration
 MODEL_SEED = int(os.getenv("MODEL_SEED", "42"))
@@ -25,6 +26,8 @@ MODEL_DEFAULT_DO_SAMPLE = os.getenv("MODEL_DEFAULT_DO_SAMPLE", "False").lower() 
 MODEL_DEFAULT_TEMPERATURE = float(os.getenv("MODEL_DEFAULT_TEMPERATURE", "1"))
 MODEL_DEFAULT_TOP_P = float(os.getenv("MODEL_DEFAULT_TOP_P", "1"))
 MODEL_DEFAULT_TOP_K = int(os.getenv("MODEL_DEFAULT_TOP_K", "50"))
+
+
 
 # Token generation penalties and limitations
 MODEL_DEFAULT_MAX_NEW_TOKENS = int(os.getenv("MODEL_DEFAULT_MAX_NEW_TOKENS", "4096"))
@@ -35,6 +38,7 @@ BASE_MODEL_CONFIG = {
     "ENABLE_CUDA": ENABLE_CUDA,
     "LOAD_IN_8BIT": LOAD_IN_8BIT,
     "LOAD_IN_4BIT": LOAD_IN_4BIT,
+    "SPACE_TOKEN_CHAR": SPACE_TOKEN_CHAR,
     "LOW_CPU_MEM_USAGE": LOW_CPU_MEM_USAGE,
     "TARGET_GPU_INDEX": TARGET_GPU_INDEX,
     "MODEL_SEED": MODEL_SEED,
