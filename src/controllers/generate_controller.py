@@ -50,9 +50,9 @@ async def generate_one(request):
             if event["type"] == LLMEventTypes.START:
                 print(f"Handing request {request_id}")
             elif not only_new_tokens and event["type"] == LLMEventTypes.INITIALIZED:
-                await response.write(event["text"][0].encode('utf-8'))
+                await response.write(event["text"].encode('utf-8'))
             elif event["type"] == LLMEventTypes.PROGRESS:
-                await response.write(event["text"][0].encode('utf-8'))
+                await response.write(event["text"].encode('utf-8'))
                 counter += 1
             elif event["type"] == LLMEventTypes.COMPLETE:
                 break

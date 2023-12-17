@@ -63,14 +63,15 @@ def start_put_in_queue(request_ids, execution_id):
     })
 
 
-def complete_put_in_queue(request_ids, execution_id, sequences, past_key_values):
+def complete_put_in_queue(request_ids, execution_id, sequences, past_key_values, request_config):
     global response_queue
     response_queue.put({
         "request_ids": request_ids,
         "execution_id": execution_id,
         "type": LLMInternalEventTypes.COMPLETE,
+        "config": request_config,
         "sequences": sequences,
-        "values": past_key_values
+        "values": past_key_values,
     })
 
 
@@ -97,30 +98,43 @@ def handle_model_responses():
         if not event["execution_id"] in event_queues:
             continue;
 
-        if event["type"] == LLMInternalEventTypes.START:
-            event_queues[event["execution_id"]].put({
-                "request_ids": event["request_ids"],
-                "type": LLMEventTypes.START
-            })
-        elif event["type"] == LLMInternalEventTypes.PROGRESS:
-            event_queues[event["execution_id"]].put({
-                "request_ids": event["request_ids"],
-                "type": LLMEventTypes.INITIALIZED if event["tokens"].dim() == 2 else LLMEventTypes.PROGRESS,
-                "text": llm_model.decode_outputs(event["tokens"])
-            })
-        elif event["type"] == LLMInternalEventTypes.COMPLETE:
-            event_queues[event["execution_id"]].put({
-                "request_ids": event["request_ids"],
-                "type": LLMEventTypes.COMPLETE,
-                "text": llm_model.decode_outputs(event["sequences"])
-            })
-            cache_id = request_ids_to_cache_id(event["request_ids"])
+        cache_id = request_ids_to_cache_id(event["request_ids"])
+        cached_item = cache[cache_id] if cache_id in cache else {}
 
-            # cache[cache_id] = {
-            #     "tokens": event["sequences"],
-            #     "masks": None,  # event["masks"],     todo update masks!
-            #     "values": event["values"],
-            # }
+        # handle start events for batch
+        if event["type"] == LLMInternalEventTypes.START:
+            for request_id in event["request_ids"]:
+                event_queues[event["execution_id"]].put({
+                    "request_id": request_id,
+                    "type": LLMEventTypes.START
+                })
+        # handle progress events for batch
+        elif event["type"] == LLMInternalEventTypes.PROGRESS:
+            # Determine event sub type
+            event_type = LLMEventTypes.INITIALIZED if event["tokens"].dim() == 2 else LLMEventTypes.PROGRESS
+
+            for request_id, tokens in zip(event["request_ids"], event["tokens"]):
+                event_queues[event["execution_id"]].put({
+                    "request_id": request_id,
+                    "type": event_type,
+                    "text": llm_model.decode_output(tokens)
+                })
+
+
+        # handle complete events for batch
+        elif event["type"] == LLMInternalEventTypes.COMPLETE:
+            for request_id, sequence in zip(event["request_ids"], event["sequences"]):
+                event_queues[event["execution_id"]].put({
+                    "request_id": request_id,
+                    "type": LLMEventTypes.COMPLETE,
+                    "text": llm_model.decode_output(sequence)
+                })
+
+        # cache[cache_id] = {
+        #     "tokens": event["sequences"],
+        #     "masks": None,  # event["masks"],     todo update masks!
+        #     "values": event["values"],
+        # }
 
 
 def handle_model_generation():
@@ -140,7 +154,13 @@ def handle_model_generation():
             request["config"],
             ResponseStreamer(request["request_ids"], request["execution_id"]) if request["use_stream"] else None
         )
-        complete_put_in_queue(request["request_ids"], request["execution_id"], sequences, past_key_values)
+        complete_put_in_queue(
+            request["request_ids"],
+            request["execution_id"],
+            sequences,
+            past_key_values,
+            request["config"]
+        )
 
 
 def prepare_prompts(prompts):

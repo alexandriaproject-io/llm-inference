@@ -30,6 +30,13 @@ Before we head out here is a list of system Memory and GPU requirements.
 - [Cuda 11.8 ( for GTX 10xx series)](docs/llm-windows-cuda-11.8.md)
 - [CPU - slow but reliable](docs/llm-windows-cpu.md)
 
+```
+NOTE: if you get error:
+... exit code -1073741819 (0xC0000005)
+you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug env variables
+```
+
+
 **Setup Linux locally**
 
 - [Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx )](docs/llm-linux-cuda-12.1.md)
@@ -103,7 +110,7 @@ You can find the example file here [.env.example](.env.example)
 
 | **Variable Name**                    | **Default Value** | **values** | **Description**                                                                                                                                                                   |
 |--------------------------------------|-------------------|------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **MODEL_DEFAULT_MAX_NEW_TOKENS**     | 2096              | Any Int    | Max **new** tokens to generate per prompt request depending on the model capabilites.                                                                                             |
+| **MODEL_DEFAULT_MAX_NEW_TOKENS**     | 2048              | Any Int    | Max **new** tokens to generate per prompt request depending on the model capabilites.                                                                                             |
 | **MODEL_DEFAULT_REPETITION_PENALTY** | 1                 | Any Float  | Parameter used to discourage the model from repeating the same words or phrases, increasing the diversity of the generated text.                                                  |
 | **MODEL_DEFAULT_LENGTH_PENALTY**     | 1                 | Any Float  | Parameter that adjusts the model's preference for longer or shorter sequences, with values greater than 1 favoring longer sequences and values less than 1 favoring shorter ones. |
 

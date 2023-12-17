@@ -48,7 +48,7 @@ parameters:
               example: 50
             max_new_tokens:
               type: number
-              example: 2096
+              example: 2048
             repetition_penalty:
               type: number
               format: float
