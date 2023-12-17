@@ -77,6 +77,16 @@ class LLMModel:
         self.isReady = True
         log.info(f"Model is ready to go.")
 
+    def cut_by_eos(self, output):
+        if output.numel() == 1:
+            return output, output == self.tokenizer.eos_token_id
+
+        eos_index = (output == self.tokenizer.eos_token_id).nonzero(as_tuple=False)
+        if eos_index.nelement() > 0:
+            return output[:eos_index[0].item() + 1], True
+
+        return output, False
+
     def decode_output(self, output):
         text = self.tokenizer.decode(output, skip_special_tokens=True)
 

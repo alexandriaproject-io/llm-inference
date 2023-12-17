@@ -26,7 +26,7 @@ async def generate_one(request):
         data = await request.json()
         request_id = data.get('request_id')
         prompt = data.get('prompt')
-        generation_config = data.get('generation_config', {})
+        generation_config = data.get('generation_config', None)
         only_new_tokens = isinstance(data.get("only_new_tokens"), bool) and data["only_new_tokens"]
         # Validate payload
         if ((not request_id or not isinstance(request_id, str))
@@ -55,6 +55,8 @@ async def generate_one(request):
                 await response.write(event["text"].encode('utf-8'))
                 counter += 1
             elif event["type"] == LLMEventTypes.COMPLETE:
+                # if event["is_eos"]:
+                #    await response.write("</s>".encode('utf-8'))
                 break
 
         end_time = time.perf_counter()
