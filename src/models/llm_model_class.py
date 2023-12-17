@@ -80,9 +80,9 @@ class LLMModel:
     def decode_output(self, output):
         text = self.tokenizer.decode(output, skip_special_tokens=True)
 
-        if self.config.SPACE_TOKEN_CHAR and output.numel() == 1:
+        if self.config["SPACE_TOKEN_CHAR"] and output.numel() == 1:
             single_token = self.tokenizer.convert_ids_to_tokens(output, skip_special_tokens=True)
-            if single_token.startswith(self.config.SPACE_TOKEN_CHAR):
+            if single_token.startswith(self.config["SPACE_TOKEN_CHAR"]):
                 text = ' ' + text
 
         return text
