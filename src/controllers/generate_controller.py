@@ -46,18 +46,18 @@ async def generate_one(request):
         start_time = time.perf_counter()
         response_queue = add_prompts_execution([request_id], [prompt], generation_config)
         while True:
-            event = response_queue.get()
-            if event["type"] == LLMEventTypes.START:
-                print(f"Handing request {request_id}")
-            elif not only_new_tokens and event["type"] == LLMEventTypes.INITIALIZED:
-                await response.write(event["text"].encode('utf-8'))
-            elif event["type"] == LLMEventTypes.PROGRESS:
-                await response.write(event["text"].encode('utf-8'))
-                counter += 1
-            elif event["type"] == LLMEventTypes.COMPLETE:
-                # if event["is_eos"]:
-                #    await response.write("</s>".encode('utf-8'))
-                break
+            events = response_queue.get()
+            event = events["events"][0]
+            if event:
+                if event["type"] == LLMEventTypes.START:
+                    print(f"Handing request {request_id}")
+                elif not only_new_tokens and event["type"] == LLMEventTypes.INITIALIZED:
+                    await response.write(event["text"].encode('utf-8'))
+                elif event["type"] == LLMEventTypes.PROGRESS:
+                    await response.write(event["text"].encode('utf-8'))
+                    counter += 1
+                elif event["type"] == LLMEventTypes.COMPLETE:
+                    break
 
         end_time = time.perf_counter()
         diff = end_time - start_time
