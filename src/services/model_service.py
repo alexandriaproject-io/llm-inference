@@ -135,18 +135,24 @@ def handle_model_responses():
         elif event["type"] == LLMInternalEventTypes.COMPLETE:
             eos_item_state = eos_cache[event["cache_id"]] if event["cache_id"] in eos_cache else {}
             is_execution_eos = True
-
+            data = []
             for request_id, sequence in zip(event["request_ids"], event["sequences"]):
                 cut_tokens, is_eos = llm_model.cut_by_eos(sequence)
                 eos_item_state[request_id] = is_eos
                 is_execution_eos = is_execution_eos and is_eos
-                event_queues[event["execution_id"]].put({
+                data.append({
                     "request_id": request_id,
-                    "type": LLMEventTypes.COMPLETE,
                     "text": llm_model.decode_output(cut_tokens),
                     "is_eos": is_eos
                 })
 
+            event_queues[event["execution_id"]].put({
+                "type": LLMEventTypes.COMPLETE,
+                "data": data,
+                "is_eos": is_execution_eos
+            })
+
+            # Handle caching or clearing of cache for this execution
             if is_execution_eos:
                 if event["cache_id"] in cache:
                     del cache[event["cache_id"]]
