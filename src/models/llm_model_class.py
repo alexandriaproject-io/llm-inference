@@ -132,6 +132,13 @@ class LLMModel:
             encoded_dict["attention_mask"]
         )
 
+    def extend_cache_mask(self, mask, attention_count, padding_count):
+        return torch.cat((
+            mask,
+            torch.ones((mask.shape[0], attention_count), device=self.device),
+            torch.zeros((mask.shape[0], padding_count), device=self.device)
+        ), dim=1)
+
     def generate_cache(self, tokens, attention_mask, past_key_values, config, streamer=None):
         if not self.isReady:
             raise NotReadyException("Model not ready.Please Use Model.load_model(path, config) and Model.run_model()")

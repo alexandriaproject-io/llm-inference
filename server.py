@@ -9,7 +9,7 @@ llm_model = LLMModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
 llm_model.load_model()
 llm_model.run_model()
 
-start_prompt = "Generate a very very long poem about 1000 cats"
+start_prompt = "[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
 execution_queue = queue.Queue()
 
 
@@ -196,9 +196,9 @@ batch_tokens(False, 10)
 
 batch_tokens(True, 100)
 batch_tokens(False, 100)
-
-batch_tokens(True, 500)
-batch_tokens(False, 500)
+#
+# batch_tokens(True, 500)
+# batch_tokens(False, 500)
 
 avg = token_by_token_test()
 avg += token_by_token_test()
