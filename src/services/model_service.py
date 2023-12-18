@@ -142,7 +142,7 @@ def handle_model_responses():
                 eos_item_state[request_id] = is_eos or eos_item_state.get(request_id, False)
                 is_execution_eos = is_execution_eos and is_eos
 
-                new_attention_tokens = cut_tokens.size(0) - mask.size(0)
+                new_attention_tokens = max(0, cut_tokens.size(0) - mask.size(0))
                 new_padding_tokens = sequence.size(0) - mask.size(0) - new_attention_tokens
                 masks.append(llm_model.extend_cache_mask(mask, new_attention_tokens, new_padding_tokens))
 
