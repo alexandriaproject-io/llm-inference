@@ -139,7 +139,7 @@ def handle_model_responses():
             masks = []
             for request_id, sequence, mask in zip(event["request_ids"], event["sequences"], event["masks"]):
                 cut_tokens, is_eos = llm_model.cut_by_eos(sequence)
-                eos_item_state[request_id] = is_eos
+                eos_item_state[request_id] = is_eos or eos_item_state.get(request_id, False)
                 is_execution_eos = is_execution_eos and is_eos
 
                 new_attention_tokens = cut_tokens.size(0) - mask.size(0)
