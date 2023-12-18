@@ -4,6 +4,7 @@ import queue
 import threading
 import enum
 import uuid
+import time
 from cachetools import TTLCache
 
 
@@ -130,16 +131,21 @@ def handle_model_responses():
 
             eos_cache[event["cache_id"]] = eos_item_state
 
-
         # handle complete events for batch
         elif event["type"] == LLMInternalEventTypes.COMPLETE:
             eos_item_state = eos_cache[event["cache_id"]] if event["cache_id"] in eos_cache else {}
             is_execution_eos = True
             data = []
-            for request_id, sequence in zip(event["request_ids"], event["sequences"]):
+            masks = []
+            for request_id, sequence, mask in zip(event["request_ids"], event["sequences"], event["masks"]):
                 cut_tokens, is_eos = llm_model.cut_by_eos(sequence)
                 eos_item_state[request_id] = is_eos
                 is_execution_eos = is_execution_eos and is_eos
+
+                new_attention_tokens = cut_tokens.size(0) - mask.size(0)
+                new_padding_tokens = sequence.size(0) - mask.size(0) - new_attention_tokens
+                masks.append(llm_model.extend_cache_mask(mask, new_attention_tokens, new_padding_tokens))
+
                 data.append({
                     "request_id": request_id,
                     "text": llm_model.decode_output(cut_tokens),
@@ -161,7 +167,7 @@ def handle_model_responses():
             else:
                 cache[event["cache_id"]] = {
                     "tokens": event["sequences"],
-                    "masks": None,  # todo update masks!
+                    "masks": llm_model.stack_masks(masks),
                     "values": event["values"],
                     "config": event["config"]
                 }
@@ -176,7 +182,7 @@ def handle_model_generation():
             break
 
         start_put_in_queue(request["cache_id"], request["request_ids"], request["execution_id"])
-
+        start_time = time.perf_counter()
         sequences, past_key_values = llm_model.generate_cache(
             request["tokens"],
             request["masks"],
@@ -188,7 +194,7 @@ def handle_model_generation():
                 request["execution_id"]
             ) if request["use_stream"] else None
         )
-
+        print(f"Execution time {time.perf_counter() - start_time} seconds")
         complete_put_in_queue(
             request["cache_id"],
             request["request_ids"],

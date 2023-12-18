@@ -135,9 +135,12 @@ class LLMModel:
     def extend_cache_mask(self, mask, attention_count, padding_count):
         return torch.cat((
             mask,
-            torch.ones((mask.shape[0], attention_count), device=self.device),
-            torch.zeros((mask.shape[0], padding_count), device=self.device)
-        ), dim=1)
+            torch.ones(attention_count, device=self.device),
+            torch.zeros(padding_count, device=self.device)
+        ), dim=0)
+
+    def stack_masks(self, masks):
+        return torch.stack(masks, dim=0).to(self.device)
 
     def generate_cache(self, tokens, attention_mask, past_key_values, config, streamer=None):
         if not self.isReady:
