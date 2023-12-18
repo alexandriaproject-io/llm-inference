@@ -121,41 +121,37 @@ def handle_model_responses():
 
         # handle progress events for batch
         elif event["type"] == LLMInternalEventTypes.PROGRESS:
+            progress_events = []
             eos_item_state = eos_cache[event["cache_id"]] if event["cache_id"] in eos_cache else {}
+            event_type = LLMEventTypes.INITIALIZED if event["tokens"].dim() == 2 else LLMEventTypes.PROGRESS
 
-            if event["tokens"].dim() == 2:
-                initialize_events = []
-                for request_id, tokens in zip(event["request_ids"], event["tokens"]):
+            for request_id, tokens in zip(event["request_ids"], event["tokens"]):
+                # Handle initialization event
+                if event_type == LLMEventTypes.INITIALIZED:
                     cut_tokens, is_eos = llm_model.cut_by_eos(tokens)
-                    initialize_events.append({
+                    progress_events.append({
                         "request_id": request_id,
                         "type": LLMEventTypes.INITIALIZED,
                         "text": llm_model.decode_output(cut_tokens)
                     })
-                     
-                event_queues[event["execution_id"]].put({
-                    "events_type": LLMEventTypes.INITIALIZED,
-                    "events": initialize_events
-                })
-            else:
-                progress_events = []
-                for request_id, tokens in zip(event["request_ids"], event["tokens"]):
-                    if not eos_item_state.get(request_id, False):
-                        cut_tokens, is_eos = llm_model.cut_by_eos(tokens)
-                        eos_item_state[request_id] = is_eos
-                        progress_events.append({
-                            "request_id": request_id,
-                            "type": LLMEventTypes.PROGRESS,
-                            "text": llm_model.decode_output(cut_tokens),
-                        })
-                    else:
-                        progress_events.append(None)
-                    eos_cache[event["cache_id"]] = eos_item_state
+                # Handle progress event
+                elif not eos_item_state.get(request_id, False):
+                    cut_tokens, is_eos = llm_model.cut_by_eos(tokens)
+                    eos_item_state[request_id] = is_eos
+                    progress_events.append({
+                        "request_id": request_id,
+                        "type": LLMEventTypes.PROGRESS,
+                        "text": llm_model.decode_output(cut_tokens) if not is_eos else llm_model.tokenizer.eos_token,
+                    })
+                else:
+                    # keep array orderly
+                    progress_events.append(None)
 
-                event_queues[event["execution_id"]].put({
-                    "events_type": LLMEventTypes.PROGRESS,
-                    "events": progress_events
-                })
+            eos_cache[event["cache_id"]] = eos_item_state
+            event_queues[event["execution_id"]].put({
+                "events_type": event_type,
+                "events": progress_events
+            })
 
         # handle complete events for batch
         elif event["type"] == LLMInternalEventTypes.COMPLETE:
@@ -165,10 +161,8 @@ def handle_model_responses():
             masks = []
             for request_id, sequence, mask in zip(event["request_ids"], event["sequences"], event["masks"]):
                 is_request_eos = eos_item_state.get(request_id, False)
-                cut_tokens, is_eos = llm_model.cut_by_eos(
-                    sequence,
-                    0 if is_request_eos else mask.size(0)
-                )
+
+                cut_tokens, is_eos = llm_model.cut_by_eos(sequence, 0 if is_request_eos else mask.size(0))
                 eos_item_state[request_id] = is_eos or is_request_eos
                 is_execution_eos = is_execution_eos and is_eos
 
