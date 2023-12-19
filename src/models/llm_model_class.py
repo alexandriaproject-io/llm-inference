@@ -83,7 +83,7 @@ class LLMModel:
 
         eos_index = (output[skip_tokens:] == self.tokenizer.eos_token_id).nonzero(as_tuple=False)
         if eos_index.nelement() > 0:
-            return output[:eos_index[-1].item() + skip_tokens + 1], True
+            return output[:eos_index[0].item() + skip_tokens + 1], True
 
         return output, False
 

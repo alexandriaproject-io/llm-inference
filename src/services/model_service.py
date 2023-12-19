@@ -26,17 +26,19 @@ execution_queue = queue.Queue()
 response_queue = queue.Queue()
 event_queues = {}
 cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
-eos_cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
+eos_cache_progress = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
+eos_cache_complete = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
 
 
 class ResponseStreamer(BaseStreamer):
-    def __init__(self, cache_id, request_ids, execution_id):
+    def __init__(self, cache_id, request_ids, execution_id, masks):
         self.cache_id = cache_id
         self.request_ids = request_ids
         self.execution_id = execution_id
+        self.masks = masks
 
     def put(self, value):
-        progress_put_in_queue(self.cache_id, self.request_ids, self.execution_id, value)
+        progress_put_in_queue(self.cache_id, self.request_ids, self.execution_id, value, self.masks)
 
     def end(self):
         return
@@ -47,14 +49,15 @@ def request_ids_to_cache_id(request_ids):
     return ''.join(sorted_ids)
 
 
-def progress_put_in_queue(cache_id, request_ids, execution_id, values):
+def progress_put_in_queue(cache_id, request_ids, execution_id, values, masks):
     global response_queue
     response_queue.put({
         "cache_id": cache_id,
         "request_ids": request_ids,
         "execution_id": execution_id,
         "type": LLMInternalEventTypes.PROGRESS,
-        "tokens": values
+        "tokens": values,
+        "masks": masks
     })
 
 
@@ -96,7 +99,8 @@ def init_llm_model():
 
 def handle_model_responses():
     global cache
-    global eos_cache
+    global eos_cache_progress
+    global eos_cache_complete
     global event_queues
     global llm_model
     while True:
@@ -105,6 +109,8 @@ def handle_model_responses():
             break
         if not event["execution_id"] in event_queues:
             continue
+        cache_id = event["cache_id"]
+        execution_id = event["execution_id"]
 
         # handle start events for batch
         if event["type"] == LLMInternalEventTypes.START:
@@ -114,7 +120,7 @@ def handle_model_responses():
                     "request_id": request_id,
                     "type": LLMEventTypes.START
                 })
-            event_queues[event["execution_id"]].put({
+            event_queues[execution_id].put({
                 "events_type": LLMEventTypes.START,
                 "events": start_events
             })
@@ -122,22 +128,22 @@ def handle_model_responses():
         # handle progress events for batch
         elif event["type"] == LLMInternalEventTypes.PROGRESS:
             progress_events = []
-            eos_item_state = eos_cache[event["cache_id"]] if event["cache_id"] in eos_cache else {}
+            eos_state_progress = eos_cache_progress[cache_id] if cache_id in eos_cache_progress else {}
+            eos_state_complete = eos_cache_complete[cache_id] if cache_id in eos_cache_complete else {}
             event_type = LLMEventTypes.INITIALIZED if event["tokens"].dim() == 2 else LLMEventTypes.PROGRESS
 
-            for request_id, tokens in zip(event["request_ids"], event["tokens"]):
+            for request_id, tokens, mask in zip(event["request_ids"], event["tokens"], event["masks"]):
                 # Handle initialization event
                 if event_type == LLMEventTypes.INITIALIZED:
-                    cut_tokens, is_eos = llm_model.cut_by_eos(tokens)
                     progress_events.append({
                         "request_id": request_id,
                         "type": LLMEventTypes.INITIALIZED,
-                        "text": llm_model.decode_output(cut_tokens)
+                        "text": llm_model.decode_output(tokens[mask == 1])
                     })
-                # Handle progress event
-                elif not eos_item_state.get(request_id, False):
+                # Handle progress event. Dont forward if reached EOS during complete or stream events
+                elif not eos_state_progress.get(request_id, False) and not eos_state_complete.get(request_id, False):
                     cut_tokens, is_eos = llm_model.cut_by_eos(tokens)
-                    eos_item_state[request_id] = is_eos
+                    eos_state_progress[request_id] = is_eos
                     progress_events.append({
                         "request_id": request_id,
                         "type": LLMEventTypes.PROGRESS,
@@ -147,49 +153,58 @@ def handle_model_responses():
                     # keep array orderly
                     progress_events.append(None)
 
-            eos_cache[event["cache_id"]] = eos_item_state
-            event_queues[event["execution_id"]].put({
+            # Update streaming eos cache
+            eos_cache_progress[cache_id] = eos_state_progress
+            event_queues[execution_id].put({
                 "events_type": event_type,
                 "events": progress_events
             })
 
         # handle complete events for batch
         elif event["type"] == LLMInternalEventTypes.COMPLETE:
-            eos_item_state = eos_cache[event["cache_id"]] if event["cache_id"] in eos_cache else {}
-            is_execution_eos = True
+            eos_state_complete = eos_cache_complete[cache_id] if cache_id in eos_cache_complete else {}
             complete_events = []
             masks = []
             for request_id, sequence, mask in zip(event["request_ids"], event["sequences"], event["masks"]):
-                is_request_eos = eos_item_state.get(request_id, False)
+                new_tokens = sequence.size(0) - mask.size(0)
+                if eos_state_complete.get(request_id, False):
+                    # Request is done, keep padding it to not break the batch execution
+                    new_mask = llm_model.extend_cache_mask(mask, 0, new_tokens)
+                else:
+                    # Skip initial tokens and check for EOS token, if found cut by first occurrence
+                    cut_tokens, is_eos = llm_model.cut_by_eos(sequence, mask.size(0))
+                    eos_state_complete[request_id] = is_eos
 
-                cut_tokens, is_eos = llm_model.cut_by_eos(sequence, 0 if is_request_eos else mask.size(0))
-                eos_item_state[request_id] = is_eos or is_request_eos
-                is_execution_eos = is_execution_eos and is_eos
+                    new_attention_tokens = max(0, cut_tokens.size(0) - mask.size(0))
+                    new_padding_tokens = new_tokens - new_attention_tokens
+                    new_mask = llm_model.extend_cache_mask(mask, new_attention_tokens, new_padding_tokens)
 
-                new_attention_tokens = max(0, cut_tokens.size(0) - mask.size(0))
-                new_padding_tokens = sequence.size(0) - mask.size(0) - new_attention_tokens
-                masks.append(llm_model.extend_cache_mask(mask, new_attention_tokens, new_padding_tokens))
-
+                masks.append(new_mask)
                 complete_events.append({
                     "type": LLMEventTypes.COMPLETE,
                     "request_id": request_id,
-                    "text": llm_model.decode_output(cut_tokens),
-                    "is_eos": is_eos
+                    "text": llm_model.decode_output(sequence[new_mask == 1]),
+                    "is_eos": eos_state_complete[request_id]
                 })
 
-            event_queues[event["execution_id"]].put({
+            # Update cache statuses
+            eos_cache_complete[cache_id] = eos_state_complete
+
+            event_queues[execution_id].put({
                 "events_type": LLMEventTypes.COMPLETE,
                 "events": complete_events,
             })
 
             # Handle caching or clearing of cache for this execution
-            if is_execution_eos:
-                if event["cache_id"] in cache:
-                    del cache[event["cache_id"]]
-                if event["cache_id"] in eos_cache:
-                    del eos_cache[event["cache_id"]]
+            if all(complete_event["is_eos"] for complete_event in complete_events):
+                if cache_id in cache:
+                    del cache[cache_id]
+                if cache_id in eos_cache_progress:
+                    del eos_cache_progress[cache_id]
+                if cache_id in eos_cache_complete:
+                    del eos_cache_complete[cache_id]
             else:
-                cache[event["cache_id"]] = {
+                cache[cache_id] = {
                     "tokens": event["sequences"],
                     "masks": llm_model.stack_masks(masks),
                     "values": event["values"],
@@ -215,7 +230,8 @@ def handle_model_generation():
             ResponseStreamer(
                 request["cache_id"],
                 request["request_ids"],
-                request["execution_id"]
+                request["execution_id"],
+                request["masks"].clone().to('cpu')
             ) if request["use_stream"] else None
         )
         print(f"Execution time {time.perf_counter() - start_time} seconds")
