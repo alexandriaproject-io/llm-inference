@@ -47,6 +47,9 @@ async def generate_one(request):
         response_queue = add_prompts_execution([request_id], [prompt], generation_config)
         while True:
             events = response_queue.get()
+            if (events["events_type"]) == LLMEventTypes.COMPLETE:
+                break
+
             event = events["events"][0]
             if event:
                 if event["type"] == LLMEventTypes.START:
@@ -56,8 +59,6 @@ async def generate_one(request):
                 elif event["type"] == LLMEventTypes.PROGRESS:
                     await response.write(event["text"].encode('utf-8'))
                     counter += 1
-                elif event["type"] == LLMEventTypes.COMPLETE:
-                    break
 
         end_time = time.perf_counter()
         diff = end_time - start_time
