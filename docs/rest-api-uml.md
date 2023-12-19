@@ -26,8 +26,6 @@ Both endpoints use standard HTTP response codes to indicate the status of a requ
     - `206 Partial Content`: This status code is returned when a response is streamed back in chunks or if the request
       has been partially fulfilled due to reaching the maxLength limit specified in the request.
 
-![Single Inference UML Diagram](diagrams/rest-api-single-prompt.svg)
-
 ## HTTP Streaming
 
 The single endpoint (`POST /api/generate-one`) supports HTTP streaming, allowing clients to receive the response in a
@@ -64,11 +62,11 @@ response, which includes generated text for all prompts in the batch, is returne
   generated. This allows the client to receive immediate feedback and ensures a responsive user experience.
 
 - **Return Status**: Once the full response is composed, the service sends a return status code. A `200` status code
-  indicates a successful operation, whereas a `206` status indicates a partial content response, which may occur if the
+  indicates a successful operation, a partial content response, which may occur if the
   response is truncated due to the `maxLength` restriction.
 
 - **End of Request**: The transaction concludes when the full response has been delivered to the client, marked by the
-  end of the request.
+  end of the request. Eend of generation is marked with EOS (`</s>`) token at the end of the response.
 
 ### API Response Examples
 
