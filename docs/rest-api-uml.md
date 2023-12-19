@@ -52,7 +52,8 @@ response, which includes generated text for all prompts in the batch, is returne
 ### Workflow Description
 
 - **HTTP Request (POST /api/generate-one)**: The client initiates the workflow by sending a POST request to
-  the `/api/generate-one` endpoint. The request payload must include a unique `id` for the session, the `prompt` for the
+  the `/api/generate-one` endpoint. The request payload must include a unique `request_id` for the session, the `prompt`
+  for the
   LLM to process, and a `maxLength` parameter that defines the limit of the generated content's length.
 
 - **LLM Inference Service**: Upon receiving the POST request, our inference service begins the process of generating a
@@ -72,10 +73,11 @@ response, which includes generated text for all prompts in the batch, is returne
 
 The API responds with text based on the given prompt. Below are two examples:
 
-- For a prompt with `id: 123`, requesting a maximum length of 10, the service might
+- For a prompt with `request_id: 123`, requesting a maximum length of 10, the service might
   return: `Response: "In the realm of code and byte,"`
 
-- For a prompt with `id: 456`, with a `maxLength` of 4, the service might return: `Response: "In the garden where"`
+- For a prompt with `request_id: 456`, with a `maxLength` of 4, the service might
+  return: `Response: "In the garden where"`
 
 ### Implementation Notes
 
@@ -90,7 +92,8 @@ The API responds with text based on the given prompt. Below are two examples:
 ### Batch Workflow Description
 
 - **HTTP Request (POST /api/generate-batch)**: Clients can send a batch of prompts in a single POST request to
-  the `/api/generate-batch` endpoint. The request payload includes an array of `prompts`, each with a unique `id`
+  the `/api/generate-batch` endpoint. The request payload includes an array of `prompts`, each with a
+  unique `request_id`
   and `prompt` text, along with a shared `maxLength` parameter for the batch.
 
 - **LLM Inference Service**: The inference service receives the batch request and processes each prompt concurrently,
@@ -104,7 +107,7 @@ The API responds with text based on the given prompt. Below are two examples:
   exceed the `maxLength` and are truncated.
 
 - **Full Response**: The complete batch response is delivered to the client as an array of objects, each containing
-  the `id` of the prompt and the generated `data`.
+  the `request_id` of the prompt and the generated `data`.
 
 ### API Response Examples for Batch Processing
 

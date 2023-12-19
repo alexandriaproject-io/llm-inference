@@ -165,8 +165,10 @@ def handle_model_responses():
             eos_state_complete = eos_cache_complete[cache_id] if cache_id in eos_cache_complete else {}
             complete_events = []
             masks = []
+            total_new_tokens_count = 0
             for request_id, sequence, mask in zip(event["request_ids"], event["sequences"], event["masks"]):
                 new_tokens = sequence.size(0) - mask.size(0)
+                new_attention_tokens = 0
                 if eos_state_complete.get(request_id, False):
                     # Request is done, keep padding it to not break the batch execution
                     new_mask = llm_model.extend_cache_mask(mask, 0, new_tokens)
@@ -179,24 +181,28 @@ def handle_model_responses():
                     new_padding_tokens = new_tokens - new_attention_tokens
                     new_mask = llm_model.extend_cache_mask(mask, new_attention_tokens, new_padding_tokens)
 
+                total_new_tokens_count += new_attention_tokens
                 masks.append(new_mask)
                 complete_events.append({
                     "type": LLMEventTypes.COMPLETE,
                     "request_id": request_id,
                     "text": llm_model.decode_output(sequence[new_mask == 1]),
+                    "new_tokens_count": new_attention_tokens,
                     "is_eos": eos_state_complete[request_id]
                 })
 
             # Update cache statuses
             eos_cache_complete[cache_id] = eos_state_complete
-
+            is_eos_all = all(complete_event["is_eos"] for complete_event in complete_events)
             event_queues[execution_id].put({
                 "events_type": LLMEventTypes.COMPLETE,
                 "events": complete_events,
+                "new_tokens_count": total_new_tokens_count,
+                "is_eos_all": is_eos_all
             })
 
             # Handle caching or clearing of cache for this execution
-            if all(complete_event["is_eos"] for complete_event in complete_events):
+            if is_eos_all:
                 if cache_id in cache:
                     del cache[cache_id]
                 if cache_id in eos_cache_progress:
