@@ -119,21 +119,21 @@ Here is an example of a batch request and its corresponding response:
 {
   "prompts": [
     {
-      "id": "123",
-      "prompt": "Write a ...",
-      "maxLength": 10
+      "request_id": "123",
+      "prompt": "Write a ..."
     },
     {
-      "id": "456",
-      "prompt": "Write a ...",
-      "maxLength": 10
+      "request_id": "456",
+      "prompt": "Write a ..."
     },
     {
-      "id": "789",
-      "prompt": "What is ...",
-      "maxLength": 3
+      "request_id": "789",
+      "prompt": "What is ..."
     }
-  ]
+  ],
+  "generation_config": {
+    "maxLength": 3
+  }
 }
 ```
 
@@ -142,16 +142,16 @@ Batch Response:
 ```json
 [
   {
-    "id": "123",
-    "data": "In the realm of code and byte,"
+    "request_id": "123",
+    "response": "In the realm of code and byte,"
   },
   {
-    "id": "456",
-    "data": "In the garden"
+    "request_id": "456",
+    "response": "In the garden"
   },
   {
-    "id": "789",
-    "data": "Sure! here"
+    "request_id": "789",
+    "response": "Sure! here"
   }
 ]
 ```

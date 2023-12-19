@@ -59,13 +59,9 @@ parameters:
               example: 1
 responses:
   "200":
-    description: Successful operation LLM signaled end of generation
+    description: Successful operation
     schema:
       type: stream
-  "206":
-    description: Successful operation - ended due to max_length
-    schema:
-      type: string
   "400":
     description: Invalid input
     schema:

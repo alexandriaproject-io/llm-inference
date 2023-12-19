@@ -16,39 +16,65 @@ parameters:
         - request_id
         - prompt
       properties:
-        request_id:
-          type: string
-        prompt:
-          type: string
+        prompts:
+          type: array
+          items:
+            type: object
+            required:
+              - request_id
+            properties:
+              request_id:
+                type: string
+                example: "YmFzZTY0"
+              prompt:
+                type: string
+                example: "[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
+          example:
+            - request_id: "YmFzZTY0"
+              prompt: "[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
+            - request_id: "rFERfgE"
+              prompt: "[INST] Generate a short poem about 1000 dogs [/INST]\n\n"
+
+        only_new_tokens:
+          type: boolean
+          example: false
         generation_config:
           type: object
           properties:
             num_beams:
               type: number
+              example: 1
             do_sample:
               type: boolean
+              example: false
             temperature:
               type: number
               format: float
+              example: 1.0
             top_p:
               type: number
               format: float
+              example: 1.0
             top_k:
               type: number
-              format: float
+              format: number
+              example: 50
             max_new_tokens:
               type: number
+              example: 2048
             repetition_penalty:
               type: number
               format: float
+              example: 1
             length_penalty:
               type: number
               format: float
+              example: 1
 responses:
   "200":
     description: Successful operation LLM signaled end of generation
     schema:
-      type: string
+      type: stream
   "206":
     description: Successful operation - ended due to max_length
     schema:
