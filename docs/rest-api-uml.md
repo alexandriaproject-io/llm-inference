@@ -26,7 +26,7 @@ Both endpoints use standard HTTP response codes to indicate the status of a requ
     - `206 Partial Content`: This status code is returned when a response is streamed back in chunks or if the request
       has been partially fulfilled due to reaching the maxLength limit specified in the request.
 
-![Single Inference UML Diagram](path-to-single-inference-image)
+![Single Inference UML Diagram](diagrams/rest-api-single-prompt.svg)
 
 ## HTTP Streaming
 
