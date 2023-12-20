@@ -115,7 +115,9 @@ You can find the example file here [.env.example](.env.example)
 | **MODEL_DEFAULT_LENGTH_PENALTY**     | 1                 | Any Float  | Parameter that adjusts the model's preference for longer or shorter sequences, with values greater than 1 favoring longer sequences and values less than 1 favoring shorter ones. |
 
 
+## UI resources
 
+https://github.com/coreui/coreui-free-react-admin-template
  
 
  
