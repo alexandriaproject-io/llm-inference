@@ -2,6 +2,7 @@ from aiohttp import web
 from aiohttp_swagger import swagger_path
 import json
 import time
+import asyncio
 from src.services.model_service import add_prompts_execution, LLMEventTypes
 
 
@@ -46,7 +47,7 @@ async def generate_one(request):
         response = web.StreamResponse(
             status=200,
             reason='OK',
-            headers={'Content-Type': 'text/plain'},
+            headers={'Content-Type': 'text/plain', 'Transfer-Encoding': 'chunked'},
         )
         await response.prepare(request)
 
@@ -54,6 +55,7 @@ async def generate_one(request):
         start_time = time.perf_counter()
         response_queue = add_prompts_execution([request_id], [prompt], generation_config)
         while True:
+            await asyncio.sleep(0)  # Streaming work-around - aiohttp needs time to actually send the data
             events = response_queue.get()
             if (events["events_type"]) == LLMEventTypes.COMPLETE:
                 break
@@ -69,7 +71,7 @@ async def generate_one(request):
                     counter += 1
 
         diff = time.perf_counter() - start_time
-        print(f"Execution of {counter} tokens was {diff} seconds at {counter / diff} t/s")
+        print(f"Generation of {counter} tokens was {diff} seconds at {counter / diff} t/s")
         await response.write_eof()
         return response
     except json.JSONDecodeError:

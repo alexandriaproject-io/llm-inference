@@ -9,3 +9,4 @@ accelerate~=0.25.0
 scipy~=1.11.4
 aiohttp~=3.9.1
 cachetools~=5.3.2
+aiohttp_cors~=0.7.0
