@@ -5,80 +5,158 @@ description: 'Generates a batch of responses based on the provided prompt and re
 operationId: generateBatch
 produces:
   - application/json
-parameters:
-  - in: body
-    name: body
-    description: Payload required for generation
-    required: true
-    schema:
-      type: object
-      required:
-        - request_id
-        - prompt
-      properties:
-        prompts:
-          type: array
-          items:
-            type: object
-            required:
-              - request_id
-            properties:
-              request_id:
-                type: string
-                example: "YmFzZTY0"
-              prompt:
-                type: string
-                example: "[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
-          example:
-            - request_id: "YmFzZTY0"
-              prompt: "[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
-            - request_id: "rFERfgE"
-              prompt: "[INST] Generate a short poem about 1000 dogs [/INST]\n\n"
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        required:
+          - request_id
+          - prompt
+        properties:
+          prompts:
+            type: array
+            items:
+              type: object
+              required:
+                - request_id
+              properties:
+                request_id:
+                  type: string
+                  example: "YmFzZTY0"
+                prompt:
+                  type: string
+                  example: "[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
+            example:
+              - request_id: "YmFzZTY0"
+                prompt: "[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
+              - request_id: "rFERfgE"
+                prompt: "[INST] Generate a short poem about 1000 dogs [/INST]\n\n"
 
-        only_new_tokens:
-          type: boolean
-          example: false
-        generation_config:
-          type: object
-          properties:
-            num_beams:
-              type: number
-              example: 1
-            do_sample:
-              type: boolean
-              example: false
-            temperature:
-              type: number
-              format: float
-              example: 1.0
-            top_p:
-              type: number
-              format: float
-              example: 1.0
-            top_k:
-              type: number
-              format: number
-              example: 50
-            max_new_tokens:
-              type: number
-              example: 2048
-            repetition_penalty:
-              type: number
-              format: float
-              example: 1
-            length_penalty:
-              type: number
-              format: float
-              example: 1
+          only_new_tokens:
+            type: boolean
+            example: false
+          generation_config:
+            type: object
+            properties:
+              num_beams:
+                type: number
+                example: 1
+              do_sample:
+                type: boolean
+                example: false
+              temperature:
+                type: number
+                format: float
+                example: 1.0
+              top_p:
+                type: number
+                format: float
+                example: 1.0
+              top_k:
+                type: number
+                format: number
+                example: 50
+              max_new_tokens:
+                type: number
+                example: 2048
+              repetition_penalty:
+                type: number
+                format: float
+                example: 1
+              length_penalty:
+                type: number
+                format: float
+                example: 1
 responses:
   "200":
     description: Successful operation LLM signaled end of generation
-    schema:
-      type: stream
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              request_id:
+                type: string
+              prompt:
+                type: string
+              response:
+                type: string
+            required:
+              - request_id
+              - response
+        examples:
+          only_new_tokens_false:
+            value: [
+              {
+                "request_id": "YmFzZTY0",
+                "prompt": "<s> [INST] Generate a very long poem about 1000 cats [/INST]\n\n",
+                "response": "In the land of feline delight,\nWhere..."
+              },
+              {
+                "request_id": "rFERfgE",
+                "prompt": "<s> [INST] Generate a short poem about 1000 dogs [/INST]\n\n",
+                "response": "Tails wagging, eyes bright,\n..."
+              }
+            ]
+          only_new_tokens_true:
+            value: [
+              {
+                "request_id": "YmFzZTY0",
+                "response": "In the land of feline delight,\nWhere..."
+              },
+              {
+                "request_id": "rFERfgE",
+                "response": "Tails wagging, eyes bright,\n..."
+              }
+            ]
   "206":
     description: Successful operation - ended due to max_length
-    schema:
-      type: string
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              request_id:
+                type: string
+              prompt:
+                type: string
+              response:
+                type: string
+            required:
+              - request_id
+              - response
+        examples:
+          only_new_tokens_true:
+            value: [
+              {
+                "request_id": "YmFzZTY0",
+                "response": "In the land of feline delight,\nWhere..."
+              },
+              {
+                "request_id": "rFERfgE",
+                "response": "Tails wagging, eyes bright,\n..."
+              }
+            ]
+          only_new_tokens_false:
+            value: [
+              {
+                "request_id": "YmFzZTY0",
+                "prompt": "<s> [INST] Generate a very long poem about 1000 cats [/INST]\n\n",
+                "response": "In the land of feline delight,\nWhere..."
+              },
+              {
+                "request_id": "rFERfgE",
+                "prompt": "<s> [INST] Generate a short poem about 1000 dogs [/INST]\n\n",
+                "response": "Tails wagging, eyes bright,\n..."
+              }
+            ]
+
   "400":
     description: Invalid input
     schema:
