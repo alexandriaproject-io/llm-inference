@@ -44,7 +44,7 @@ const AppHeader = () => {
           </CNavItem>
           &nbsp;
           <CNavItem>
-            <CNavLink to="/dashboard" component={NavLink}>
+            <CNavLink to="/rest-api-single" component={NavLink}>
               Rest API - Single
             </CNavLink>
           </CNavItem>
