@@ -24,7 +24,7 @@ import docco from 'react-syntax-highlighter/dist/esm/styles/hljs/docco'
 import atomDark from 'react-syntax-highlighter/dist/esm/styles/hljs/atom-one-dark'
 import { useSelector } from 'react-redux'
 
-const API_PATH = `${process.env.REACT_APP_BASE_URL}/api/generate-one`
+const API_PATH = `${process.env.REACT_APP_BASE_URL || ''}/api/generate-one`
 
 async function readHttpStream(
   url,
@@ -53,6 +53,25 @@ async function readHttpStream(
   }
 }
 
+function replaceStringAtEnd(str, search, replace) {
+  if (str.endsWith(search)) {
+    return str.slice(0, -search.length) + replace
+  }
+  return str
+}
+
+const defaultGenerationConfig = () => {
+  return {
+    num_beams: 1,
+    do_sample: false,
+    temperature: 1,
+    top_p: 1,
+    top_k: 50,
+    max_new_tokens: 100,
+    repetition_penalty: 1,
+    length_penalty: 1,
+  }
+}
 const Dashboard = () => {
   const [requestId, setRequestId] = useState(uuidv4())
   const [prompt, setPrompt] = useState(
@@ -66,20 +85,12 @@ const Dashboard = () => {
   const [lastResponseTime, setLastResponseTime] = useState(0)
   const [responseTimes, setResponseTimes] = useState([])
   const [isError, setIsError] = useState(0)
+  const [errorText, setErrorText] = useState('')
   const [isWaiting, setIsWaiting] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
   const [rawResponse, setRawResponse] = useState(false)
   const [isContinuePrompt, setIsContinuePrompt] = useState(false)
-  const [generationConfig, setGenerationConfig] = useState({
-    num_beams: 1,
-    do_sample: false,
-    temperature: 1,
-    top_p: 1,
-    top_k: 50,
-    max_new_tokens: 100,
-    repetition_penalty: 1,
-    length_penalty: 1,
-  })
+  const [generationConfig, setGenerationConfig] = useState(defaultGenerationConfig())
   const theme = useSelector(({ theme }) => {
     return theme === 'auto'
       ? window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -112,6 +123,7 @@ const Dashboard = () => {
     setIsWaiting(true)
     setIsStreaming(false)
     setIsStop(false)
+    setErrorText('')
     setIsError(0)
     setLastResponseTime(0)
 
@@ -121,7 +133,7 @@ const Dashboard = () => {
     } else {
       fullResponse = isOnlyNewTokens ? response : ''
     }
-
+    let lastStreamChunk = ''
     try {
       const { responseTime, response } = await readHttpStream(
         API_PATH,
@@ -132,6 +144,7 @@ const Dashboard = () => {
           generation_config: generationConfig,
         },
         (text) => {
+          lastStreamChunk = text
           fullResponse += text
           setIsWaiting(false)
           setIsStreaming(true)
@@ -141,6 +154,8 @@ const Dashboard = () => {
       )
       if (response.status !== 200) {
         setIsError(1)
+        setResponse(replaceStringAtEnd(fullResponse, lastStreamChunk, ''))
+        setErrorText(lastStreamChunk)
       } else {
         if (!isContinuePrompt) {
           setResponseTimes([responseTime])
@@ -157,6 +172,8 @@ const Dashboard = () => {
       } else {
         console.error(e)
         setIsError(1)
+        setResponse(replaceStringAtEnd(fullResponse, lastStreamChunk, ''))
+        setErrorText(lastStreamChunk)
       }
 
       setResponseController(null)
@@ -189,21 +206,28 @@ const Dashboard = () => {
     setResponseController(null)
     setLastResponseTime(0)
     setResponseTimes([])
-    setIsError(false)
+    setIsError(0)
+    setErrorText('')
     setIsWaiting(false)
     setIsStreaming(false)
     setIsContinuePrompt(false)
   }
 
-  //   : 1,
-  //   : 1,
-  // }
-
   return (
     <>
       <CForm className="pb-3">
         <CCard className="mb-3 ">
-          <CCardHeader>Generation Config:</CCardHeader>
+          <CCardHeader>
+            Generation Config:
+            <CButton
+              color="secondary"
+              size="sm"
+              className="float-end"
+              onClick={() => setGenerationConfig(defaultGenerationConfig())}
+            >
+              reset defaults
+            </CButton>
+          </CCardHeader>
           <CCardBody>
             <small>
               <br />
@@ -217,13 +241,14 @@ const Dashboard = () => {
                   <CFormInput
                     placeholder="temperature"
                     type="number"
-                    value={generationConfig.temperature < 0 ? 0 : generationConfig.temperature}
-                    onChange={(e) =>
+                    value={generationConfig.temperature}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0
                       setGenerationConfig({
                         ...generationConfig,
-                        temperature: parseFloat(e.target.value) || 0,
+                        temperature: value < 0 ? 0 : value,
                       })
-                    }
+                    }}
                   />
                 </CInputGroup>
               </CCol>
@@ -235,15 +260,14 @@ const Dashboard = () => {
                   <CFormInput
                     placeholder="max_new_tokens"
                     type="number"
-                    value={
-                      generationConfig.max_new_tokens < 0 ? 0 : generationConfig.max_new_tokens
-                    }
-                    onChange={(e) =>
+                    value={generationConfig.max_new_tokens}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0
                       setGenerationConfig({
                         ...generationConfig,
-                        max_new_tokens: parseInt(e.target.value) || 0,
+                        max_new_tokens: value < 1 ? 1 : value,
                       })
-                    }
+                    }}
                   />
                 </CInputGroup>
               </CCol>
@@ -257,13 +281,14 @@ const Dashboard = () => {
                   <CFormInput
                     placeholder="num_beams"
                     type="number"
-                    value={generationConfig.num_beams < 1 ? 1 : generationConfig.num_beams}
-                    onChange={(e) =>
+                    value={generationConfig.num_beams}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0
                       setGenerationConfig({
                         ...generationConfig,
-                        num_beams: parseInt(e.target.value) || 0,
+                        num_beams: value < 1 ? 1 : value,
                       })
-                    }
+                    }}
                   />
                 </CInputGroup>
               </CCol>
@@ -275,7 +300,7 @@ const Dashboard = () => {
                     onChange={(e) =>
                       setGenerationConfig({
                         ...generationConfig,
-                        do_sample: e.target.checked,
+                        do_sample: !!e.target.checked,
                       })
                     }
                     className="mt-2"
@@ -295,13 +320,14 @@ const Dashboard = () => {
                   <CFormInput
                     placeholder="top_p"
                     type="number"
-                    value={generationConfig.top_p < 0 ? 0 : generationConfig.top_p}
-                    onChange={(e) =>
+                    value={generationConfig.top_p}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0
                       setGenerationConfig({
                         ...generationConfig,
-                        top_p: parseFloat(e.target.value) || 0,
+                        top_p: value < 0 ? 0 : value,
                       })
-                    }
+                    }}
                   />
                 </CInputGroup>
               </CCol>
@@ -313,13 +339,14 @@ const Dashboard = () => {
                   <CFormInput
                     placeholder="top_k"
                     type="number"
-                    value={generationConfig.top_k < 0 ? 0 : generationConfig.top_k}
-                    onChange={(e) =>
+                    value={generationConfig.top_k}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0
                       setGenerationConfig({
                         ...generationConfig,
-                        top_k: parseInt(e.target.value) || 0,
+                        top_k: value < 0 ? 0 : value,
                       })
-                    }
+                    }}
                   />
                 </CInputGroup>
               </CCol>
@@ -333,17 +360,14 @@ const Dashboard = () => {
                   <CFormInput
                     placeholder="repetition_penalty"
                     type="number"
-                    value={
-                      generationConfig.repetition_penalty < 0
-                        ? 0
-                        : generationConfig.repetition_penalty
-                    }
-                    onChange={(e) =>
+                    value={generationConfig.repetition_penalty}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0
                       setGenerationConfig({
                         ...generationConfig,
-                        repetition_penalty: parseFloat(e.target.value) || 0,
+                        repetition_penalty: value < 0.000001 ? 0.000001 : value,
                       })
-                    }
+                    }}
                   />
                 </CInputGroup>
               </CCol>
@@ -355,15 +379,14 @@ const Dashboard = () => {
                   <CFormInput
                     placeholder="length_penalty"
                     type="number"
-                    value={
-                      generationConfig.length_penalty < 0 ? 0 : generationConfig.length_penalty
-                    }
-                    onChange={(e) =>
+                    value={generationConfig.length_penalty}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0
                       setGenerationConfig({
                         ...generationConfig,
-                        length_penalty: parseFloat(e.target.value) || 0,
+                        length_penalty: value < 0 ? 0 : value,
                       })
-                    }
+                    }}
                   />
                 </CInputGroup>
               </CCol>
@@ -390,7 +413,7 @@ const Dashboard = () => {
           <CFormFeedback invalid>
             {isError === 2
               ? 'Aborting might cause some data to be lost, its best to reset after aborting!'
-              : 'Error generating a response, check your console'}
+              : errorText || 'Error generating a response, check your console'}
           </CFormFeedback>
           {responseTimes.length
             ? responseTimes.map((time, i) => (
