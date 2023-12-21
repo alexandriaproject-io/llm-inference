@@ -20,6 +20,7 @@ module.exports = {
   ],
   plugins: ['react', 'react-hooks'],
   rules: {
+    "linebreak-style": 0,
     'react/prop-types': 0,
     'react-hooks/exhaustive-deps': 0,
     'react/no-unescaped-entities': 0
