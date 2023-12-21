@@ -228,6 +228,17 @@ def handle_model_generation():
 
         start_put_in_queue(request["cache_id"], request["request_ids"], request["execution_id"])
         start_time = time.perf_counter()
+
+        # if no stream is enabled fire initialization event manually
+        if not request["use_stream"]:
+            progress_put_in_queue(
+                request["cache_id"],
+                request["request_ids"],
+                request["execution_id"],
+                request["tokens"],
+                request["masks"]
+            )
+        # TODO: Add error handling here!
         sequences, past_key_values = llm_model.generate_cache(
             request["tokens"],
             request["masks"],

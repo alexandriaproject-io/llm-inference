@@ -157,12 +157,12 @@ class LLMModel:
 
                 num_beams=config.get("num_beams", self.config["MODEL_DEFAULT_NUM_BEAMS"]),
                 do_sample=config.get("do_sample", self.config["MODEL_DEFAULT_DO_SAMPLE"]),
-                temperature=config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"]),
-                top_p=config.get("top_p", self.config["MODEL_DEFAULT_TOP_P"]),
+                temperature=float(config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"])),
+                top_p=float(config.get("top_p", self.config["MODEL_DEFAULT_TOP_P"])),
                 top_k=config.get("top_k", self.config["MODEL_DEFAULT_TOP_K"]),
                 max_new_tokens=config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"]),
-                repetition_penalty=config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"]),
-                length_penalty=config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"]),
+                repetition_penalty=float(config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"])),
+                length_penalty=float(config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"])),
 
                 streamer=streamer
             )

@@ -50,25 +50,38 @@ async def generate_one(request):
             headers={'Content-Type': 'text/plain', 'Transfer-Encoding': 'chunked'},
         )
         await response.prepare(request)
-
+        is_streaming = generation_config.get("num_beams", 1) == 1
         counter = 0
         start_time = time.perf_counter()
-        response_queue = add_prompts_execution([request_id], [prompt], generation_config)
+        response_queue = add_prompts_execution(
+            [request_id],
+            [prompt],
+            generation_config,
+            is_streaming
+        )
+        initialization = ''
         while True:
             await asyncio.sleep(0)  # Streaming work-around - aiohttp needs time to actually send the data
             events = response_queue.get()
-            if (events["events_type"]) == LLMEventTypes.COMPLETE:
-                break
-
             event = events["events"][0]
+
             if event:
                 if event["type"] == LLMEventTypes.START:
                     print(f"Handing request {request_id}")
-                elif not only_new_tokens and event["type"] == LLMEventTypes.INITIALIZED:
-                    await response.write(event["text"].encode('utf-8'))
+                elif event["type"] == LLMEventTypes.INITIALIZED:
+                    initialization = event["text"]
+                    if is_streaming and not only_new_tokens:
+                        await response.write(event["text"].encode('utf-8'))
                 elif event["type"] == LLMEventTypes.PROGRESS:
                     await response.write(event["text"].encode('utf-8'))
-                    counter += 1
+                elif event["type"] == LLMEventTypes.COMPLETE:
+                    counter = event['new_tokens_count']
+                    if not is_streaming:
+                        if not only_new_tokens:
+                            await response.write(event["text"].encode('utf-8'))
+                        else:
+                            await response.write(event["text"].replace(initialization, '').encode('utf-8'))
+                    break
 
         diff = time.perf_counter() - start_time
         print(f"Generation of {counter} tokens was {diff} seconds at {counter / diff} t/s")
@@ -100,7 +113,7 @@ async def generate_batch(request):
             return web.Response(text="Duplicate request_ids", status=400)
 
         start_time = time.perf_counter()
-        response_queue = add_prompts_execution(request_ids, request_prompts, generation_config)
+        response_queue = add_prompts_execution(request_ids, request_prompts, generation_config, False)
         initializations = []
         while True:
             events = response_queue.get()
