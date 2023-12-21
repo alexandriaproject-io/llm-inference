@@ -1,0 +1,26 @@
+{
+  "files": {
+    "main.css": "./static/css/main.5ba0b44d.css",
+    "main.js": "./static/js/main.20b621a9.js",
+    "static/js/730.590973d3.chunk.js": "./static/js/730.590973d3.chunk.js",
+    "static/js/496.6ec609e1.chunk.js": "./static/js/496.6ec609e1.chunk.js",
+    "static/js/915.c3da5afb.chunk.js": "./static/js/915.c3da5afb.chunk.js",
+    "static/js/184.b61b0cb1.chunk.js": "./static/js/184.b61b0cb1.chunk.js",
+    "static/js/447.1ae33b94.chunk.js": "./static/js/447.1ae33b94.chunk.js",
+    "static/js/302.65d333a9.chunk.js": "./static/js/302.65d333a9.chunk.js",
+    "static/media/alexandria-project-logo.jpg": "./static/media/alexandria-project-logo.17be9eff46f9665f5535.jpg",
+    "index.html": "./index.html",
+    "main.5ba0b44d.css.map": "./static/css/main.5ba0b44d.css.map",
+    "main.20b621a9.js.map": "./static/js/main.20b621a9.js.map",
+    "730.590973d3.chunk.js.map": "./static/js/730.590973d3.chunk.js.map",
+    "496.6ec609e1.chunk.js.map": "./static/js/496.6ec609e1.chunk.js.map",
+    "915.c3da5afb.chunk.js.map": "./static/js/915.c3da5afb.chunk.js.map",
+    "184.b61b0cb1.chunk.js.map": "./static/js/184.b61b0cb1.chunk.js.map",
+    "447.1ae33b94.chunk.js.map": "./static/js/447.1ae33b94.chunk.js.map",
+    "302.65d333a9.chunk.js.map": "./static/js/302.65d333a9.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5ba0b44d.css",
+    "static/js/main.20b621a9.js"
+  ]
+}

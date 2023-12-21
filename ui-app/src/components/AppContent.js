@@ -23,7 +23,7 @@ const AppContent = () => {
               )
             )
           })}
-          <Route path="*" element={<Navigate to="rest-api-single" replace />} />
+          <Route path="*" element={<Navigate to="/ui/rest-api-single" replace />} />
         </Routes>
       </Suspense>
     </CContainer>
