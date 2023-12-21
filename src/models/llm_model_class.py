@@ -155,12 +155,12 @@ class LLMModel:
                 pad_token_id=self.tokenizer.pad_token_id,
                 eos_token_id=self.tokenizer.eos_token_id,
 
-                num_beams=config.get("num_beams", self.config["MODEL_DEFAULT_NUM_BEAMS"]),
-                do_sample=config.get("do_sample", self.config["MODEL_DEFAULT_DO_SAMPLE"]),
+                num_beams=int(config.get("num_beams", self.config["MODEL_DEFAULT_NUM_BEAMS"])),
+                do_sample=bool(config.get("do_sample", self.config["MODEL_DEFAULT_DO_SAMPLE"])),
                 temperature=float(config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"])),
                 top_p=float(config.get("top_p", self.config["MODEL_DEFAULT_TOP_P"])),
-                top_k=config.get("top_k", self.config["MODEL_DEFAULT_TOP_K"]),
-                max_new_tokens=config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"]),
+                top_k=int(config.get("top_k", self.config["MODEL_DEFAULT_TOP_K"])),
+                max_new_tokens=int(config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"])),
                 repetition_penalty=float(config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"])),
                 length_penalty=float(config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"])),
 
