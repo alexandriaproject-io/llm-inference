@@ -51,7 +51,7 @@ async def generate_one(request):
         )
         await response.prepare(request)
         is_streaming = generation_config.get("num_beams", 1) == 1
-        counter = 0
+
         start_time = time.perf_counter()
         response_queue = add_prompts_execution(
             [request_id],
@@ -59,12 +59,21 @@ async def generate_one(request):
             generation_config,
             is_streaming
         )
+
         initialization = ''
         while True:
             await asyncio.sleep(0)  # Streaming work-around - aiohttp needs time to actually send the data
             events = response_queue.get()
-            event = events["events"][0]
 
+            # Stream error as the last chunk before killing the request
+            if events["events_type"] == LLMEventTypes.ERROR:
+                error_message = str(events.get("error", "Unknown error occurred"))
+                print(f"Request {request_id} error: {error_message}")
+                await response.write(error_message.encode('utf-8'))
+                await asyncio.sleep(0)
+                raise Exception(f"Error processing request {request_id}: {error_message}")
+
+            event = events["events"][0]
             if event:
                 if event["type"] == LLMEventTypes.START:
                     print(f"Handing request {request_id}")
@@ -117,6 +126,12 @@ async def generate_batch(request):
         initializations = []
         while True:
             events = response_queue.get()
+            if events["events_type"] == LLMEventTypes.ERROR:
+                error_message = str(events.get("error", "Unknown error occurred"))
+                print(f"Requests {', '.join(request_ids)} error: {error_message}")
+                await asyncio.sleep(0)
+                raise Exception(f"Error processing requests {', '.join(request_ids)}: {error_message}")
+
             if (events["events_type"]) == LLMEventTypes.INITIALIZED:
                 initializations = events["events"]
             elif (events["events_type"]) == LLMEventTypes.COMPLETE:

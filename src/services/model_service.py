@@ -13,12 +13,14 @@ class LLMEventTypes(enum.Enum):
     INITIALIZED = 3
     PROGRESS = 4
     COMPLETE = 5
+    ERROR = 6
 
 
 class LLMInternalEventTypes(enum.Enum):
     START = 1
     PROGRESS = 4
     COMPLETE = 5
+    ERROR = 6
 
 
 llm_model: LLMModel
@@ -82,6 +84,17 @@ def complete_put_in_queue(cache_id, request_ids, execution_id, sequences, past_k
         "sequences": sequences,
         "masks": masks,
         "values": past_key_values,
+    })
+
+
+def error_put_in_queue(cache_id, request_ids, execution_id, error):
+    global response_queue
+    response_queue.put({
+        "cache_id": cache_id,
+        "request_ids": request_ids,
+        "execution_id": execution_id,
+        "type": LLMInternalEventTypes.ERROR,
+        "error": error,
     })
 
 
@@ -216,6 +229,26 @@ def handle_model_responses():
                     "values": event["values"],
                     "config": event["config"]
                 }
+            # Clean event_queue reference
+            if execution_id in event_queues:
+                del event_queues[execution_id]
+
+        elif event["type"] == LLMInternalEventTypes.ERROR:
+            error_events = []
+            for request_id in event["request_ids"]:
+                error_events.append({
+                    "request_id": request_id,
+                    "type": LLMEventTypes.ERROR,
+                    "error": event["error"]
+                })
+            event_queues[execution_id].put({
+                "events_type": LLMEventTypes.ERROR,
+                "events": error_events,
+                "error": event["error"]
+            })
+            # Clean event_queue reference
+            if execution_id in event_queues:
+                del event_queues[execution_id]
 
 
 def handle_model_generation():
@@ -226,8 +259,11 @@ def handle_model_generation():
         if request is None:  # Use None as a signal to stop the thread
             break
 
-        start_put_in_queue(request["cache_id"], request["request_ids"], request["execution_id"])
-        start_time = time.perf_counter()
+        start_put_in_queue(
+            request["cache_id"],
+            request["request_ids"],
+            request["execution_id"]
+        )
 
         # if no stream is enabled fire initialization event manually
         if not request["use_stream"]:
@@ -238,29 +274,36 @@ def handle_model_generation():
                 request["tokens"],
                 request["masks"]
             )
-        # TODO: Add error handling here!
-        sequences, past_key_values = llm_model.generate_cache(
-            request["tokens"],
-            request["masks"],
-            request.get("values", None),
-            request["config"],
-            ResponseStreamer(
+
+        try:
+            sequences, past_key_values = llm_model.generate_cache(
+                request["tokens"],
+                request["masks"],
+                request.get("values", None),
+                request["config"],
+                ResponseStreamer(
+                    request["cache_id"],
+                    request["request_ids"],
+                    request["execution_id"],
+                    request["masks"].clone().to('cpu')
+                ) if request["use_stream"] else None
+            )
+            complete_put_in_queue(
                 request["cache_id"],
                 request["request_ids"],
                 request["execution_id"],
-                request["masks"].clone().to('cpu')
-            ) if request["use_stream"] else None
-        )
-        print(f"Execution time {time.perf_counter() - start_time} seconds")
-        complete_put_in_queue(
-            request["cache_id"],
-            request["request_ids"],
-            request["execution_id"],
-            sequences,
-            past_key_values,
-            request["masks"],
-            request["config"]
-        )
+                sequences,
+                past_key_values,
+                request["masks"],
+                request["config"]
+            )
+        except Exception as error:
+            error_put_in_queue(
+                request["cache_id"],
+                request["request_ids"],
+                request["execution_id"],
+                error
+            )
 
 
 def prepare_prompts(prompts, request_config):
