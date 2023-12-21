@@ -72,6 +72,33 @@ const defaultGenerationConfig = () => {
     length_penalty: 1,
   }
 }
+
+let scrollLock = false
+let lastScrollY = window.scrollY
+window.addEventListener('scroll', (e) => {
+  if (scrollLock) {
+    if (window.scrollY < lastScrollY) {
+      scrollLock = false
+    }
+  } else {
+    scrollLock = document.body.offsetHeight - (window.innerHeight + window.scrollY) < 50
+  }
+  lastScrollY = window.scrollY
+})
+
+const scroller = () => {
+  if (scrollLock && window.scrollY < document.body.scrollHeight) {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'auto',
+    })
+  }
+  let timer = document.body.scrollHeight - window.scrollY
+  timer = timer < 100 ? 100 : timer > 250 ? 250 : timer
+  window.setTimeout(scroller, !scrollLock ? 100 : timer)
+}
+window.setTimeout(scroller, 0)
+
 const Dashboard = () => {
   const [requestId, setRequestId] = useState(uuidv4())
   const [prompt, setPrompt] = useState(
@@ -79,6 +106,7 @@ const Dashboard = () => {
   )
   const [isStop, setIsStop] = useState(false)
   const [autoContinue, setAutoContinue] = useState(false)
+  const [autoScroll, setAutoScroll] = useState(true)
   const [isOnlyNewTokens, setIsOnlyNewTokens] = useState(true)
   const [response, setResponse] = useState(``)
   const [responseController, setResponseController] = useState(null)
@@ -119,7 +147,8 @@ const Dashboard = () => {
       setIsStop(false)
     }
   }, [lastResponseTime])
-  const sendPrompt = async () => {
+  const sendPrompt = async (scrollToText) => {
+    scrollLock = scrollToText ?? scrollLock
     setIsWaiting(true)
     setIsStreaming(false)
     setIsStop(false)
@@ -154,6 +183,8 @@ const Dashboard = () => {
       )
       if (response.status !== 200) {
         setIsError(1)
+        scrollLock = false
+        autoScroll && window.scrollTo(0, 0)
         setResponse(replaceStringAtEnd(fullResponse, lastStreamChunk, ''))
         setErrorText(lastStreamChunk)
       } else {
@@ -172,6 +203,8 @@ const Dashboard = () => {
       } else {
         console.error(e)
         setIsError(1)
+        scrollLock = false
+        autoScroll && window.scrollTo(0, 0)
         setResponse(replaceStringAtEnd(fullResponse, lastStreamChunk, ''))
         setErrorText(lastStreamChunk)
       }
@@ -215,7 +248,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <CForm className="pb-3">
+      <CForm className="pb-5">
         <CCard className="mb-3 ">
           <CCardHeader>
             Generation Config:
@@ -415,13 +448,23 @@ const Dashboard = () => {
               ? 'Aborting might cause some data to be lost, its best to reset after aborting!'
               : errorText || 'Error generating a response, check your console'}
           </CFormFeedback>
+        </div>
+
+        {responseTimes.length ? (
+          <CFormLabel htmlFor="exampleFormControlTextarea1">
+            <strong>Response time history: </strong>
+          </CFormLabel>
+        ) : (
+          ''
+        )}
+        <div className="pb-3" style={{ overflow: 'auto', whiteSpace: 'nowrap' }}>
           {responseTimes.length
             ? responseTimes.map((time, i) => (
                 <CBadge
                   key={`badge-${i}-${time}`}
                   color="dark"
                   shape="rounded-pill"
-                  className="me-2 mt-3"
+                  className="me-2"
                 >
                   {time / 1000} s
                 </CBadge>
@@ -433,7 +476,7 @@ const Dashboard = () => {
           <CButton
             color="primary"
             disabled={isWaiting || isStreaming || !prompt}
-            onClick={sendPrompt}
+            onClick={() => sendPrompt(autoScroll)}
           >
             {isStop
               ? 'Stopping...'
@@ -482,7 +525,17 @@ const Dashboard = () => {
           </CButton>
           &nbsp;&nbsp;
         </div>
-
+        <CFormCheck
+          style={{ cursor: 'pointer' }}
+          checked={autoScroll}
+          onChange={(e) => setAutoScroll(e.target.checked)}
+          className="mt-2"
+          type="checkbox"
+          id="setAutoScroll"
+          label={
+            <span style={{ cursor: 'pointer' }}>Auto scroll to follow the generated response</span>
+          }
+        />
         <CFormCheck
           style={{ cursor: 'pointer' }}
           checked={autoContinue}

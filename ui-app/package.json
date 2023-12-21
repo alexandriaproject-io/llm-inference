@@ -17,7 +17,7 @@
     "eject": "react-scripts eject",
     "lint": "eslint \"src/**/*.js\"",
     "lint:fix": "eslint \"src/**/*.js\" --fix",
-    "start": "REACT_APP_BASE_URL=http://localhost:8080 react-scripts start",
+    "start": "cross-env REACT_APP_BASE_URL=http://localhost:8080 react-scripts start",
     "test": "react-scripts test",
     "test:cov": "npm test -- --coverage --watchAll=false",
     "test:debug": "react-scripts --inspect-brk test --runInBand"
@@ -51,6 +51,7 @@
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",
+    "cross-env": "^7.0.3",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "prettier": "3.1.0",
