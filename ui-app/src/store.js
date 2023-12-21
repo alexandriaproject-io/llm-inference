@@ -2,7 +2,7 @@ import { legacy_createStore as createStore } from 'redux'
 
 const initialState = {
   sidebarShow: true,
-  theme: 'light',
+  theme: localStorage.getItem('coreui-free-react-admin-template-theme') || 'auto',
 }
 
 const changeState = (state = initialState, { type, ...rest }) => {
