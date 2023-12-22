@@ -33,7 +33,7 @@ async def generate_one(request):
         data = await request.json()
         request_id = data.get('request_id')
         prompt = data.get('prompt', ' ')
-        generation_config = data.get('generation_config', None)
+        generation_config = data.get('generation_config', {})
         only_new_tokens = isinstance(data.get("only_new_tokens"), bool) and data["only_new_tokens"]
         # Validate payload
         if (
