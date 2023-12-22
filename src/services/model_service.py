@@ -116,6 +116,8 @@ def handle_model_responses():
     global eos_cache_complete
     global event_queues
     global llm_model
+    global response_queue
+
     while True:
         event = response_queue.get()
         if event is None:  # Use None as a signal to stop the thread
