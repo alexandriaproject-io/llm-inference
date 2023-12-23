@@ -1,21 +1,24 @@
-from aiohttp import web
-from src.routes.routes import set_routes, set_cors, set_ui
-import src.services.model_service as model_service
-import aiohttp_swagger
-from src.config import config
+from torch.multiprocessing import Process, Queue, Event
+from src.services.inference_service.inference_service import start_model_generator
+from src.services.api_service.api_service import start_server
 
 if __name__ == '__main__':
-    model_service.init_llm_model()
-    app = web.Application()
-    set_routes(app)
-    aiohttp_swagger.setup_swagger(
-        app,
-        ui_version=3,
-        swagger_url="/swagger",
-        title="API documentation",
-        description=f"<h2>You can find UI demos at <a target='_blank' style=\"font-size:0.9em\" href='/ui/'>http://localhost:{config.SERVER_PORT}/ui</a></h2>",
+    execution_queue = Queue()
+    events_queue = Queue()
+    print("Lading LLM inference service")
+    inference_ready_event = Event()
+    Process(
+        target=start_model_generator,
+        args=(execution_queue, events_queue, inference_ready_event)
+    ).start()
+    inference_ready_event.wait()
+    print("Starting API service")
+    api_process = Process(
+        target=start_server,
+        args=(execution_queue, events_queue)
     )
-    set_ui(app)
-    set_cors(app)
+    api_process.start()
+    api_process.join()
+    print("Done")
 
-    web.run_app(app, host=config.SERVER_HOST, port=config.SERVER_PORT)
+

@@ -1,6 +1,7 @@
-from src.controllers import ws_controller, generate_controller
-from aiohttp import web
 import aiohttp_cors
+from aiohttp import web
+from src.services.api_service.utils import ExtendedRequest
+from src.controllers import ws_controller, generate_controller
 
 
 async def index(request):

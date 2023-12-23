@@ -137,9 +137,9 @@ class LLMModel:
     def extend_cache_mask(self, mask, attention_count, padding_count):
         return torch.cat((
             mask,
-            torch.ones(attention_count, device=self.device),
-            torch.zeros(padding_count, device=self.device)
-        ), dim=0)
+            torch.ones(attention_count, device=mask.device),
+            torch.zeros(padding_count, device=mask.device)
+        ), dim=0).to(self.device)
 
     def stack_masks(self, masks):
         return torch.stack(masks, dim=0).to(self.device)
