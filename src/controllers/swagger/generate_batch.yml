@@ -45,7 +45,7 @@ requestBody:
                 example: 1
               do_sample:
                 type: boolean
-                example: false
+                example: true
               temperature:
                 type: number
                 format: float

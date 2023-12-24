@@ -63,13 +63,14 @@ function replaceStringAtEnd(str, search, replace) {
 const defaultGenerationConfig = () => {
   return {
     num_beams: 1,
-    do_sample: false,
+    do_sample: true,
     temperature: 1,
     top_p: 1,
     top_k: 50,
     max_new_tokens: 100,
     repetition_penalty: 1,
     length_penalty: 1,
+    stream_response: true,
   }
 }
 
@@ -148,7 +149,8 @@ const Dashboard = () => {
     }
   }, [lastResponseTime])
   const sendPrompt = async (scrollToText) => {
-    scrollLock = scrollToText ?? scrollLock
+    setResponse('')
+    window.setTimeout(() => (scrollLock = scrollToText ?? scrollLock), 250)
     setIsWaiting(true)
     setIsStreaming(false)
     setIsStop(false)

@@ -22,7 +22,7 @@ SPACE_TOKEN_CHAR = os.getenv("SPACE_TOKEN_CHAR")
 # Token generation configuration
 MODEL_SEED = int(os.getenv("MODEL_SEED", "42"))
 MODEL_DEFAULT_NUM_BEAMS = int(os.getenv("MODEL_DEFAULT_NUM_BEAMS", "1"))
-MODEL_DEFAULT_DO_SAMPLE = os.getenv("MODEL_DEFAULT_DO_SAMPLE", "False").lower() == 'true'
+MODEL_DEFAULT_DO_SAMPLE = os.getenv("MODEL_DEFAULT_DO_SAMPLE", "True").lower() == 'true'
 MODEL_DEFAULT_TEMPERATURE = float(os.getenv("MODEL_DEFAULT_TEMPERATURE", "1"))
 MODEL_DEFAULT_TOP_P = float(os.getenv("MODEL_DEFAULT_TOP_P", "1"))
 MODEL_DEFAULT_TOP_K = int(os.getenv("MODEL_DEFAULT_TOP_K", "50"))

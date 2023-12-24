@@ -7,7 +7,7 @@ function Timer() {
     const timeStart = new Date().getTime()
     const interval = setInterval(() => {
       setSeconds((seconds) => new Date().getTime() - timeStart)
-    }, 99)
+    }, 299)
 
     // Clear interval on component unmount
     return () => clearInterval(interval)
