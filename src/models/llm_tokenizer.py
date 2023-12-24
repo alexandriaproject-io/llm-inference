@@ -5,6 +5,8 @@ from transformers import AutoTokenizer
 class LLMTokenizer:
     def __init__(self, model_path, config):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, padding_size="left")
+        self.bos_token = self.tokenizer.bos_token
+        self.eos_token = self.tokenizer.eos_token
         self.tokenizer.pad_token = self.tokenizer.bos_token
         self.tokenizer.add_special_tokens({"pad_token": self.tokenizer.bos_token})
         self.device = config.get("device", "cpu")
@@ -23,8 +25,8 @@ class LLMTokenizer:
 
         return output, False
 
-    def decode_output(self, output):
-        text = self.tokenizer.decode(output, skip_special_tokens=False)
+    def decode_output(self, output, skip_special_tokens=False):
+        text = self.tokenizer.decode(output, skip_special_tokens)
 
         if self.SPACE_TOKEN_CHAR and output.numel() == 1:
             single_token = self.tokenizer.convert_ids_to_tokens([output], skip_special_tokens=False)[0]
