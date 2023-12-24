@@ -147,7 +147,7 @@ class LLMModel:
     def generate_cache(self, tokens, attention_mask, past_key_values, config, streamer=None):
         if not self.isReady:
             raise NotReadyException("Model not ready.Please Use Model.load_model(path, config) and Model.run_model()")
-        print(float(config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"])))
+        
         with torch.inference_mode():
             model_output = self.model.generate(
                 input_ids=tokens,

@@ -1,6 +1,6 @@
-from src.models.llm_model_class import BaseStreamer
 import enum
-
+from logger import log
+from src.models.llm_model_class import BaseStreamer
 
 class LLMInternalEventTypes(enum.Enum):
     START = 1
@@ -26,16 +26,18 @@ class ResponseQueueStreamer(BaseStreamer):
 def check_request_cache(cache, cache_id, request, device):
     if cache_id in cache:
         cached_item = cache[cache_id]
+        log.info("Using cached values")
         return (
             cached_item["tokens"],
             cached_item["masks"],
             cached_item["values"],
-            request["config"] or cached_item["config"],  # Allow for in between cache config changes
+            request["config"] or cached_item["config"] or {},  # Allow for in between cache config changes
         )
     else:
+        log.info("No cached values found")
         return (
             request["tokens"].to(device),
             request["masks"].to(device),
             None,
-            request["config"] or None,
+            request["config"] or {},
         )
