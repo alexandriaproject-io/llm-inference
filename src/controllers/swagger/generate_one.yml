@@ -24,6 +24,9 @@ requestBody:
           only_new_tokens:
             type: boolean
             example: false
+          stream_response:
+            type: boolean
+            example: true
           generation_config:
             type: object
             properties:

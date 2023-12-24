@@ -36,6 +36,7 @@ async def generate_one(request):
         prompt = data.get('prompt', ' ')
         generation_config = data.get('generation_config', None)
         only_new_tokens = isinstance(data.get("only_new_tokens"), bool) and data["only_new_tokens"]
+        stream_response = isinstance(data.get("stream_response"), bool) and data["stream_response"]
         # Validate payload
         if (
                 (not request_id or not isinstance(request_id, str))
@@ -51,7 +52,7 @@ async def generate_one(request):
             headers={'Content-Type': 'text/plain', 'Transfer-Encoding': 'chunked'},
         )
         await response.prepare(request)
-        is_streaming = generation_config.get("num_beams", 1) == 1 if generation_config else True
+        is_streaming = stream_response and (generation_config.get("num_beams", 1) == 1 if generation_config else True)
 
         start_time = time.perf_counter()
         response_queue = await request.executions.execute_prompts(
