@@ -70,7 +70,6 @@ const defaultGenerationConfig = () => {
     max_new_tokens: 100,
     repetition_penalty: 1,
     length_penalty: 1,
-    stream_response: true,
   }
 }
 
@@ -109,6 +108,7 @@ const Dashboard = () => {
   const [autoContinue, setAutoContinue] = useState(false)
   const [autoScroll, setAutoScroll] = useState(true)
   const [isOnlyNewTokens, setIsOnlyNewTokens] = useState(true)
+  const [isStreamResponse, setIsStreamResponse] = useState(true)
   const [response, setResponse] = useState(``)
   const [responseController, setResponseController] = useState(null)
   const [lastResponseTime, setLastResponseTime] = useState(0)
@@ -149,8 +149,12 @@ const Dashboard = () => {
     }
   }, [lastResponseTime])
   const sendPrompt = async (scrollToText) => {
-    setResponse('')
-    window.setTimeout(() => (scrollLock = scrollToText ?? scrollLock), 250)
+    if (isContinuePrompt) {
+      scrollLock = scrollToText ?? scrollLock
+    } else {
+      setResponse('')
+      window.setTimeout(() => (scrollLock = scrollToText ?? scrollLock), 250)
+    }
     setIsWaiting(true)
     setIsStreaming(false)
     setIsStop(false)
@@ -172,6 +176,7 @@ const Dashboard = () => {
           request_id: requestId,
           prompt: prompt,
           only_new_tokens: isOnlyNewTokens,
+          stream_response: isStreamResponse,
           generation_config: generationConfig,
         },
         (text) => {
@@ -258,7 +263,11 @@ const Dashboard = () => {
               color="secondary"
               size="sm"
               className="float-end"
-              onClick={() => setGenerationConfig(defaultGenerationConfig())}
+              onClick={() => {
+                setGenerationConfig(defaultGenerationConfig())
+                setIsOnlyNewTokens(true)
+                setIsStreamResponse(true)
+              }}
             >
               reset defaults
             </CButton>
@@ -426,6 +435,41 @@ const Dashboard = () => {
                 </CInputGroup>
               </CCol>
             </CRow>
+            <CRow>
+              <CCol cm={6}>
+                <CFormCheck
+                  style={{ cursor: 'pointer' }}
+                  checked={isOnlyNewTokens}
+                  disabled={isWaiting || isStreaming}
+                  onChange={(e) => setIsOnlyNewTokens(e.target.checked)}
+                  className="mt-2"
+                  type="checkbox"
+                  id="onlyNewTokensCheck"
+                  label={
+                    <span style={{ cursor: 'pointer' }}>
+                      Only return new tokens ( or include prompt )
+                    </span>
+                  }
+                />
+              </CCol>
+              <CCol cm={6}>
+                <CFormCheck
+                  style={{ cursor: 'pointer' }}
+                  checked={isStreamResponse}
+                  disabled={isWaiting || isStreaming}
+                  onChange={(e) => setIsStreamResponse(e.target.checked)}
+                  className="mt-2"
+                  type="checkbox"
+                  id="isStreamResponse"
+                  label={
+                    <span style={{ cursor: 'pointer' }}>
+                      Stream tokens as they are being generated ( or all at once )
+                    </span>
+                  }
+                />
+              </CCol>
+            </CRow>
+
             <div className="invalid-feedback d-block">
               {generationConfig.num_beams !== 1 && 'Multiple beams do not support streaming!'}
             </div>
@@ -468,7 +512,7 @@ const Dashboard = () => {
                   shape="rounded-pill"
                   className="me-2"
                 >
-                  {time / 1000} s
+                  {(time / 1000).toFixed(3)} s
                 </CBadge>
               ))
             : ''}
@@ -480,7 +524,7 @@ const Dashboard = () => {
             disabled={isWaiting || isStreaming || !prompt}
             onClick={() => sendPrompt(autoScroll)}
           >
-            {isStop
+            {isStop && (isWaiting || isStreaming)
               ? 'Stopping...'
               : isWaiting
                 ? 'Waiting...'
@@ -512,7 +556,7 @@ const Dashboard = () => {
           <CButton
             color="secondary"
             className="float-end ms-3"
-            disabled={(!isWaiting && !isStreaming) || isStop}
+            disabled={!autoContinue}
             onClick={() => setIsStop(true)}
           >
             Stop
@@ -549,20 +593,6 @@ const Dashboard = () => {
           label={
             <span style={{ cursor: 'pointer' }}>
               Automatically continue prompt generation when didnt reach EOS
-            </span>
-          }
-        />
-        <CFormCheck
-          style={{ cursor: 'pointer' }}
-          checked={isOnlyNewTokens}
-          disabled={isWaiting || isStreaming}
-          onChange={(e) => setIsOnlyNewTokens(e.target.checked)}
-          className="mt-2"
-          type="checkbox"
-          id="onlyNewTokensCheck"
-          label={
-            <span style={{ cursor: 'pointer' }}>
-              Only return new tokens, if disabled returns response including prompt
             </span>
           }
         />
