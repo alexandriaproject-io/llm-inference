@@ -86,6 +86,7 @@ def handle_model_responses(response_queue, events_queue, tokenizer_config, cache
                     "type": LLMEventTypes.COMPLETE,
                     "request_id": request_id,
                     "tokens": sequence[new_mask == 1].to('cpu'),
+                    "new_tokens": att_tokens,
                     "is_eos": eos_state_complete[request_id]
                 })
 
@@ -108,7 +109,8 @@ def handle_model_responses(response_queue, events_queue, tokenizer_config, cache
                     "values": event["values"],
                     "config": execution["config"]
                 }
-
+            # Remove execution cache as we finish the execution here
+            del execution_cache[execution_id]
         # Handle execution error event
         elif event["type"] == LLMInternalEventTypes.ERROR:
             events_queue.put({
@@ -117,6 +119,8 @@ def handle_model_responses(response_queue, events_queue, tokenizer_config, cache
                 "error": event["error"],
                 "events": [
                     {"request_id": request_id, "type": LLMEventTypes.ERROR, "error": event["error"]}
-                    for request_id in event["request_ids"]
+                    for request_id in execution["request_ids"]
                 ]
             })
+            # Remove execution cache as we finish the execution here
+            del execution_cache[execution_id]

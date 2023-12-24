@@ -1,5 +1,4 @@
 import queue
-import time
 import threading
 from cachetools import TTLCache
 from src.config import config
@@ -25,68 +24,65 @@ def start_model_generator(execution_queue, events_queue, ready_event):
     ).start()
 
     ready_event.set()
-    while True:
-        request = execution_queue.get()
 
-        if request is None:  # Use None as a signal to stop the thread
-            print("Stopping generation process...")
-            break
-        if request["execution_id"] in execution_cache:
-            print("Ignoring duplicate execution run.")
-            continue
+    try:
+        while True:
+            request = execution_queue.get()
 
-        execution_id = request["execution_id"]
-        request_ids = request["request_ids"]
-        cache_id = ''.join("request_ids")
-        tokens, masks, values, req_config = check_request_cache(cache, request, llm_model.device)
+            if request is None:  # Use None as a signal to stop the thread
+                print("Stopping generation process...")
+                break
+            if request["execution_id"] in execution_cache:
+                print("Ignoring duplicate execution run.")
+                continue
 
-        # to avoid sending these in every event we put them as execution cache
-        execution_cache[execution_id] = {
-            "cache_id": cache_id,
-            "request_ids": request_ids,
-            "tokens": tokens,
-            "masks": masks,
-            "config": req_config
-        }
+            execution_id = request["execution_id"]
+            request_ids = request["request_ids"]
+            cache_id = '-'.join(request_ids)
+            tokens, masks, values, req_config = check_request_cache(cache, cache_id, request, llm_model.device)
 
-        response_queue.put({
-            "type": LLMInternalEventTypes.START,
-            "execution_id": request["execution_id"],
-        })
-
-        # if no stream is enabled fire initialization event manually
-        if not request["use_stream"]:
-            response_queue.put({
-                "type": LLMInternalEventTypes.PROGRESS,
-                "execution_id": request["execution_id"],
+            # to avoid sending these in every event we put them as execution cache
+            execution_cache[execution_id] = {
+                "cache_id": cache_id,
+                "request_ids": request_ids,
                 "tokens": tokens,
-            })
-
-        try:
-            start = time.perf_counter()
-            sequences, past_key_values = llm_model.generate_cache(
-                request["tokens"],
-                request["masks"],
-                request.get("values", None),
-                request["config"],
-                ResponseQueueStreamer(response_queue, execution_id) if request["use_stream"] else None
-            )
-            diff = time.perf_counter() - start
-            print(f"Generation done {diff} sec at {100 / diff}")
+                "masks": masks.to('cpu'),
+                "config": req_config
+            }
 
             response_queue.put({
-                "type": LLMInternalEventTypes.COMPLETE,
-                "execution_id": execution_id,
-                "sequences": sequences,
-                "values": past_key_values,
-            })
-
-        except Exception as error:
-            response_queue.put({
-                "type": LLMInternalEventTypes.ERROR,
+                "type": LLMInternalEventTypes.START,
                 "execution_id": request["execution_id"],
-                "error": error,
             })
 
-        # Clear active execution data
-        del execution_cache[execution_id]
+            # if no stream is enabled fire initialization event manually
+            if not request["use_stream"]:
+                response_queue.put({
+                    "type": LLMInternalEventTypes.INITIALIZED,
+                    "execution_id": request["execution_id"],
+                    "tokens": tokens,
+                })
+
+            try:
+                sequences, past_key_values = llm_model.generate_cache(
+                    tokens,
+                    masks,
+                    values,
+                    req_config,
+                    ResponseQueueStreamer(response_queue, execution_id) if request["use_stream"] else None
+                )
+                response_queue.put({
+                    "type": LLMInternalEventTypes.COMPLETE,
+                    "execution_id": execution_id,
+                    "sequences": sequences,
+                    "values": past_key_values,
+                })
+            except Exception as error:
+                response_queue.put({
+                    "type": LLMInternalEventTypes.ERROR,
+                    "execution_id": request["execution_id"],
+                    "error": error,
+                })
+    except KeyboardInterrupt:
+        events_queue.put(None)
+        print("Shutting down model generator.")

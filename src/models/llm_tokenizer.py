@@ -10,8 +10,9 @@ class LLMTokenizer:
         self.device = config.get("device", "cpu")
         self.SPACE_TOKEN_CHAR = config.get("SPACE_TOKEN_CHAR", None)
 
-    def is_eos_token(self,token):
+    def is_eos_token(self, token):
         return token == self.tokenizer.eos_token_id
+
     def cut_by_eos(self, output, skip_tokens=0):
         if output.numel() == 1:
             return output, output == self.tokenizer.eos_token_id
@@ -65,10 +66,10 @@ class LLMTokenizer:
             mask,
             torch.ones(attention_count, device=mask.device),
             torch.zeros(padding_count, device=mask.device)
-        ), dim=0).to(mask.device)
+        ), dim=0).to(self.device)
 
-    def stack_masks(self, masks, device):
+    def stack_masks(self, masks):
         if len(masks):
-            return torch.stack(masks, dim=0).to(masks[0].device)
+            return torch.stack(masks, dim=0).to(self.device)
         else:
             return torch.stack([])

@@ -3,7 +3,8 @@ from aiohttp_swagger import swagger_path
 import json
 import time
 import asyncio
-from src.services.model_service import add_prompts_execution, LLMEventTypes
+from src.config.types import LLMEventTypes
+from logger import log
 
 
 def is_valid_config(generation_config):
@@ -33,7 +34,7 @@ async def generate_one(request):
         data = await request.json()
         request_id = data.get('request_id')
         prompt = data.get('prompt', ' ')
-        generation_config = data.get('generation_config', {})
+        generation_config = data.get('generation_config', None)
         only_new_tokens = isinstance(data.get("only_new_tokens"), bool) and data["only_new_tokens"]
         # Validate payload
         if (
@@ -50,10 +51,10 @@ async def generate_one(request):
             headers={'Content-Type': 'text/plain', 'Transfer-Encoding': 'chunked'},
         )
         await response.prepare(request)
-        is_streaming = generation_config.get("num_beams", 1) == 1
+        is_streaming = generation_config.get("num_beams", 1) == 1 if generation_config else True
 
         start_time = time.perf_counter()
-        response_queue = add_prompts_execution(
+        response_queue = await request.executions.execute_prompts(
             [request_id],
             [prompt],
             generation_config,
@@ -62,13 +63,15 @@ async def generate_one(request):
 
         initialization = ''
         while True:
-            await asyncio.sleep(0)  # Streaming work-around - aiohttp needs time to actually send the data
-            events = response_queue.get()
-
+            events = await response_queue.get()
+            if events is None:
+                await response.write("Server is shutting down.".encode('utf-8'))
+                await asyncio.sleep(0)
+                raise Exception(f"Got exit event!")
             # Stream error as the last chunk before killing the request
             if events["events_type"] == LLMEventTypes.ERROR:
                 error_message = str(events.get("error", "Unknown error occurred"))
-                print(f"Request {request_id} error: {error_message}")
+                log.error(f"Request {request_id} error: {error_message}")
                 await response.write(error_message.encode('utf-8'))
                 await asyncio.sleep(0)
                 raise Exception(f"Error processing request {request_id}: {error_message}")
@@ -76,7 +79,7 @@ async def generate_one(request):
             event = events["events"][0]
             if event:
                 if event["type"] == LLMEventTypes.START:
-                    print(f"Handing request {request_id}")
+                    log.info(f"Handing request {request_id}")
                 elif event["type"] == LLMEventTypes.INITIALIZED:
                     initialization = event["text"]
                     if is_streaming and not only_new_tokens:
@@ -84,7 +87,7 @@ async def generate_one(request):
                 elif event["type"] == LLMEventTypes.PROGRESS:
                     await response.write(event["text"].encode('utf-8'))
                 elif event["type"] == LLMEventTypes.COMPLETE:
-                    counter = event['new_tokens_count']
+                    counter = event["new_tokens"]
                     if not is_streaming:
                         if not only_new_tokens:
                             await response.write(event["text"].encode('utf-8'))
@@ -93,7 +96,7 @@ async def generate_one(request):
                     break
 
         diff = time.perf_counter() - start_time
-        print(f"Generation of {counter} tokens was {diff} seconds at {counter / diff} t/s")
+        log.info(f"Generation of {counter} tokens was {diff} seconds at {counter / diff} t/s")
         await response.write_eof()
         return response
     except json.JSONDecodeError:
@@ -122,26 +125,35 @@ async def generate_batch(request):
             return web.Response(text="Duplicate request_ids", status=400)
 
         start_time = time.perf_counter()
-        response_queue = add_prompts_execution(request_ids, request_prompts, generation_config, False)
+        response_queue = await request.executions.execute_prompts(
+            request_ids,
+            request_prompts,
+            generation_config,
+            False
+        )
         initializations = []
         while True:
-            events = response_queue.get()
+            events = await response_queue.get()
+            if events is None:
+                raise Exception(f"Server is shutting down.")
+
             if events["events_type"] == LLMEventTypes.ERROR:
                 error_message = str(events.get("error", "Unknown error occurred"))
-                print(f"Requests {', '.join(request_ids)} error: {error_message}")
+                log.error(f"Requests {', '.join(request_ids)} error: {error_message}")
                 await asyncio.sleep(0)
                 raise Exception(f"Error processing requests {', '.join(request_ids)}: {error_message}")
-
-            if (events["events_type"]) == LLMEventTypes.INITIALIZED:
+            elif events["events_type"] == LLMEventTypes.START:
+                log.info(f"Handing requests {', '.join(request_ids)}")
+            elif (events["events_type"]) == LLMEventTypes.INITIALIZED:
                 initializations = events["events"]
             elif (events["events_type"]) == LLMEventTypes.COMPLETE:
                 results = events["events"]
-                counter = events["new_tokens_count"]
+                total_count = sum(result['new_tokens'] for result in results)
                 is_complete = events["is_eos_all"]
                 break
 
         diff = time.perf_counter() - start_time
-        print(f"Execution of {counter} tokens was {diff} seconds at {counter / diff} t/s")
+        log.info(f"Execution of {total_count} total tokens was {diff} seconds at {total_count / diff} t/s")
 
         remapped_results = []
         for result, initialization in zip(results, initializations):

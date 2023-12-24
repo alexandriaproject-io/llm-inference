@@ -1,6 +1,5 @@
 import aiohttp_cors
 from aiohttp import web
-from src.services.api_service.utils import ExtendedRequest
 from src.controllers import ws_controller, generate_controller
 
 

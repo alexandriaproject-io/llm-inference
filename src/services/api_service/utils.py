@@ -27,21 +27,30 @@ class ResponseHandler:
 
     async def listen(self):
         while True:
-            event = await self.events_queue.get()  # Get the event from the multiprocessing queue
-            execution_id = event["execution_id"]
+            queue_event = await self.events_queue.get()  # Get the event from the multiprocessing queue
+            if queue_event is None:
+                # Send all listeners end event
+                for queue in self.execution_queues.values():
+                    await queue.put(None)
+                break
 
-            if event["events_type"] == LLMEventTypes.INITIALIZED:
-                for event in event["events"]:
+            execution_id = queue_event["execution_id"]
+
+            if queue_event["events_type"] == LLMEventTypes.INITIALIZED:
+                for event in queue_event["events"]:
                     event['text'] = self.tokenizer.decode_output(event['tokens'])
-            elif event["events_type"] == LLMEventTypes.PROGRESS:
-                for event in event["events"]:
+
+            elif queue_event["events_type"] == LLMEventTypes.PROGRESS:
+                for event in queue_event["events"]:
                     event['text'] = self.tokenizer.decode_output(event['token'])
-            elif event["events_type"] == LLMEventTypes.COMPLETE:
-                for event in event["events"]:
+
+            elif queue_event["events_type"] == LLMEventTypes.COMPLETE:
+                for event in queue_event["events"]:
                     event['text'] = self.tokenizer.decode_output(event['tokens'])
+
             # Route the event to the appropriate execution queue if it exists
             if execution_id in self.execution_queues:
-                await self.execution_queues[execution_id].put(event)
+                await self.execution_queues[execution_id].put(queue_event)
 
     def register_execution(self, execution_id):
         self.execution_queues[execution_id] = asyncio.Queue()
@@ -52,7 +61,10 @@ class ResponseHandler:
             del self.execution_queues[execution_id]
 
 
-class ExtendedRequest(web.Request):
+class ExecutionHandler:
+    def __init__(self, app):
+        self.app = app
+
     async def execute_prompts(self, request_ids, prompts, execution_config, use_stream=True):
         tokenizer: LLMTokenizer = self.app["tokenizer"]
         encoded_dict = tokenizer.tokenize_prompts(prompts)

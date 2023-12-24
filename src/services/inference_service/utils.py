@@ -23,9 +23,9 @@ class ResponseQueueStreamer(BaseStreamer):
         })
 
 
-def check_request_cache(cache, request, device):
-    if request["cache_id"] in cache:
-        cached_item = cache[request["cache_id"]]
+def check_request_cache(cache, cache_id, request, device):
+    if cache_id in cache:
+        cached_item = cache[cache_id]
         return (
             cached_item["tokens"],
             cached_item["masks"],

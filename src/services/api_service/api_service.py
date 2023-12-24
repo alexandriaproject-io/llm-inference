@@ -6,18 +6,25 @@ from aiohttp import web
 from src.config import config
 from src.routes.routes import set_routes, set_cors, set_ui
 from src.models.llm_tokenizer import LLMTokenizer
-from src.services.api_service.utils import ResponseHandler, AsyncQueueHandler
+from src.services.api_service.utils import ResponseHandler, AsyncQueueHandler, ExecutionHandler
+
+
+@web.middleware
+async def extend_request(request, handler):
+    setattr(request, 'executions', ExecutionHandler(request.app))
+    return await handler(request)
 
 
 def start_server(execution_queue, events_queue):
-    app = web.Application()
+    app = web.Application(middlewares=[extend_request])
 
     app["tokenizer"] = LLMTokenizer(config.MODEL_PATH, {"SPACE_TOKEN_CHAR": config.SPACE_TOKEN_CHAR})
-    app["execution_queue"] = AsyncQueueHandler(execution_queue)
-    app["response_events"] = ResponseHandler(AsyncQueueHandler(events_queue), app["tokenizer"])
 
-    async def on_startup(app):
-        asyncio.create_task(app["response_events"].listen())
+    async def on_startup(t_app):
+        t_app["execution_queue"] = AsyncQueueHandler(execution_queue)
+        t_app["events_queue"] = AsyncQueueHandler(events_queue)
+        t_app["response_events"] = ResponseHandler(t_app["events_queue"], t_app["tokenizer"])
+        asyncio.create_task(t_app["response_events"].listen())
 
     app.on_startup.append(on_startup)
 
