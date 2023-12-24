@@ -35,8 +35,9 @@ async def generate_one(request):
         request_id = data.get('request_id')
         prompt = data.get('prompt', ' ')
         generation_config = data.get('generation_config', None)
-        only_new_tokens = isinstance(data.get("only_new_tokens"), bool) and data["only_new_tokens"]
-        stream_response = isinstance(data.get("stream_response"), bool) and data["stream_response"]
+        only_new_tokens = data.get("only_new_tokens", True) if isinstance(data.get("only_new_tokens"), bool) else True
+        stream_response = data.get("stream_response", True) if isinstance(data.get("stream_response"), bool) else True
+
         # Validate payload
         if (
                 (not request_id or not isinstance(request_id, str))
@@ -110,7 +111,7 @@ async def generate_batch(request):
         data = await request.json()
         prompts = data.get('prompts', [])
         generation_config = data.get('generation_config', None)
-        only_new_tokens = isinstance(data.get("only_new_tokens"), bool) and data["only_new_tokens"]
+        only_new_tokens = data.get("only_new_tokens", True) if isinstance(data.get("only_new_tokens"), bool) else True
         # Validate payload
         if (
                 (not len(prompts))
