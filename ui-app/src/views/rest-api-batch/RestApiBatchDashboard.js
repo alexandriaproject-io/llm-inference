@@ -2,184 +2,190 @@ import React, { useEffect, useState } from 'react'
 import {
   CBadge,
   CButton,
+  CCard,
+  CCol,
   CForm,
   CFormCheck,
-  CFormFeedback,
+  CFormInput,
   CFormLabel,
   CFormTextarea,
+  CInputGroup,
+  CInputGroupText,
+  CRow,
 } from '@coreui/react'
 import Timer from '../../components/Timer'
 import { v4 as uuidv4 } from 'uuid'
 import GenerationConfig from '../../components/GenerationConfig'
 import PromptResponse from '../../components/PromptResponse'
 
-const API_PATH = `${process.env.REACT_APP_BASE_URL || ''}/api/generate-one`
+const API_PATH = `${process.env.REACT_APP_BASE_URL || ''}/api/generate-batch`
 
-async function readHttpStream(
-  url,
-  postData,
-  onChunk = () => undefined,
-  onController = () => undefined,
-) {
+async function postHttp(url, postData, onController = () => undefined) {
   const start = new Date().getTime()
   const controller = new AbortController()
   const signal = controller.signal
+  onController(controller)
   const response = await fetch(url, {
     method: 'POST',
     body: JSON.stringify(postData), // Convert the JavaScript object to a JSON string
     signal,
   })
-  onController(controller)
-  const reader = response.body.getReader()
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    onChunk(new TextDecoder().decode(value))
-  }
   return {
+    json:
+      response.status === 200 || response.status === 206
+        ? await response.json()
+        : await response.text(),
     response,
     responseTime: new Date().getTime() - start,
   }
 }
 
-function replaceStringAtEnd(str, search, replace) {
-  if (str.endsWith(search)) {
-    return str.slice(0, -search.length) + replace
-  }
-  return str
-}
-
 const RestApiBatchDashboard = () => {
-  const [requestId, setRequestId] = useState(uuidv4())
-  const [prompt, setPrompt] = useState(
-    '[INST] Generate a very long poem about 1000 cats [/INST]\n\n',
-  )
+  const [prompts, setPrompts] = useState([
+    {
+      prompt: '[INST] Generate a very long poem about 1000 cats [/INST]\n\n',
+      requestId: uuidv4(),
+      id: uuidv4(),
+    },
+    {
+      prompt: '[INST] Generate a very short poem about 1000 dogs [/INST]\n\n',
+      requestId: uuidv4(),
+      id: uuidv4(),
+    },
+  ])
   const [isStop, setIsStop] = useState(false)
   const [autoContinue, setAutoContinue] = useState(false)
-  const [autoScroll, setAutoScroll] = useState(true)
-  const [response, setResponse] = useState(``)
+  const [responses, setResponses] = useState([])
   const [responseController, setResponseController] = useState(null)
   const [lastResponseTime, setLastResponseTime] = useState(0)
   const [responseTimes, setResponseTimes] = useState([])
   const [isError, setIsError] = useState(0)
   const [errorText, setErrorText] = useState('')
   const [isWaiting, setIsWaiting] = useState(false)
-  const [isStreaming, setIsStreaming] = useState(false)
   const [isContinuePrompt, setIsContinuePrompt] = useState(false)
   const [generationConfig, setGenerationConfig] = useState({})
 
   useEffect(() => {
-    if (autoContinue && isContinuePrompt && !isStreaming && !isWaiting && !isStop && !isError) {
+    if (autoContinue && isContinuePrompt && !isWaiting && !isStop && !isError) {
       sendPrompt() // need to allow the states to update before continuing
     } else {
       setIsStop(false)
     }
   }, [lastResponseTime])
-  const sendPrompt = async (scrollToText) => {
-    if (isContinuePrompt) {
-      window.scrollLock = scrollToText ?? window.scrollLock
-    } else {
-      setResponse('')
-      window.setTimeout(() => (window.scrollLock = scrollToText ?? window.scrollLock), 250)
-    }
+
+  const sendPrompt = async () => {
     setIsWaiting(true)
-    setIsStreaming(false)
     setIsStop(false)
     setErrorText('')
     setIsError(0)
     setLastResponseTime(0)
 
-    let fullResponse = ''
+    let fullResponses = prompts.map(({ requestId }) => ({
+      request_id: requestId,
+      response: '',
+    }))
     if (!isContinuePrompt) {
       setResponseTimes([])
+      setResponses([])
     } else {
-      fullResponse = generationConfig?.requestConfig?.onlyNewTokens ? response : ''
+      if (generationConfig?.requestConfig?.onlyNewTokens) {
+        fullResponses = [...responses]
+      }
     }
-    let lastStreamChunk = ''
+
     try {
-      const { responseTime, response } = await readHttpStream(
+      const { responseTime, response, json } = await postHttp(
         API_PATH,
         {
-          request_id: requestId,
-          prompt: prompt,
+          prompts: prompts.map(({ requestId, prompt }) => ({ request_id: requestId, prompt })),
           only_new_tokens: !!generationConfig?.requestConfig?.onlyNewTokens,
-          stream_response: !!generationConfig?.requestConfig?.streamResponse,
           generation_config: generationConfig.llmConfig,
         },
-        (text) => {
-          lastStreamChunk = text
-          fullResponse += text
-          setIsWaiting(false)
-          setIsStreaming(true)
-          setResponse(fullResponse)
+        (controller) => {
+          setResponseController(controller)
         },
-        (controller) => setResponseController(controller),
       )
-      if (response.status !== 200) {
-        setIsError(1)
-        window.scrollLock = false
-        autoScroll && window.scrollTo(0, 0)
-        setResponse(replaceStringAtEnd(fullResponse, lastStreamChunk, ''))
-        setErrorText(lastStreamChunk)
-      } else {
+      if (response.status === 200 || response.status === 206) {
+        setResponses(
+          json.map((data, index) => {
+            const full = fullResponses.find(({ request_id }) => request_id === data.request_id) || {
+              response: '',
+            }
+            return {
+              ...data,
+              response: (full.response += data.response),
+            }
+          }),
+        )
         if (!isContinuePrompt) {
           setResponseTimes([responseTime])
         } else {
           setResponseTimes([...responseTimes, responseTime])
         }
+        setLastResponseTime(responseTime)
+        const isEos = response.status === 200
+        setIsContinuePrompt(!isEos)
+        if (isEos) {
+          setIsStop(false)
+        }
+      } else {
+        setIsError(1)
+        setErrorText(json)
       }
-
-      setLastResponseTime(responseTime)
     } catch (e) {
       if (e.name === 'AbortError') {
-        console.log('Aborting')
         setIsError(2)
       } else {
         console.error(e)
         setIsError(1)
-        window.scrollLock = false
-        autoScroll && window.scrollTo(0, 0)
-        setResponse(replaceStringAtEnd(fullResponse, lastStreamChunk, ''))
-        setErrorText(lastStreamChunk)
+        setErrorText(e.message)
       }
 
       setResponseController(null)
       setIsWaiting(false)
-      setIsStreaming(false)
       setIsStop(false)
     } finally {
       setResponseController(null)
       setIsWaiting(false)
-      setIsStreaming(false)
-      const isEos = fullResponse.trimEnd().endsWith('</s>')
-      setIsContinuePrompt(!isEos)
-      if (isEos) {
-        setIsStop(false)
-      }
     }
   }
 
   const abortRequest = () => {
     setIsStop(true)
-    console.log(responseController)
     if (responseController) {
       responseController.abort()
     }
   }
   const resetPrompt = () => {
-    setRequestId(uuidv4())
     setIsStop(false)
-    setResponse('')
+    setResponses([])
+    setPrompts(prompts.map((prompt) => ({ ...prompt, requestId: uuidv4() })))
     setResponseController(null)
     setLastResponseTime(0)
     setResponseTimes([])
     setIsError(0)
     setErrorText('')
     setIsWaiting(false)
-    setIsStreaming(false)
     setIsContinuePrompt(false)
   }
-
+  const removePrompt = (index) => {
+    prompts.splice(index, 1)
+    setPrompts([...prompts])
+  }
+  const addPrompt = () => {
+    setPrompts([
+      ...prompts,
+      {
+        requestId: uuidv4(),
+        prompt: '',
+        id: uuidv4(),
+      },
+    ])
+  }
+  const updatePrompt = (index, prompt) => {
+    prompts[index] = prompt
+    setPrompts([...prompts])
+  }
   return (
     <>
       <CForm className="pb-5">
@@ -188,29 +194,49 @@ const RestApiBatchDashboard = () => {
           onChange={(newConfig) => setGenerationConfig(newConfig)}
           showStream
         />
+        <CRow>
+          {prompts.map(({ prompt, requestId, id }, index) => (
+            <CCol sm={6} className="mt-4" key={`batch-prompt-${id}`}>
+              <CCard>
+                <CInputGroup>
+                  <CInputGroupText>RequestId</CInputGroupText>
+                  <CFormInput
+                    disabled={isWaiting || isContinuePrompt}
+                    placeholder="requestId"
+                    type="text"
+                    value={requestId}
+                    onChange={(e) => updatePrompt(index, { prompt, requestId: e.target.value })}
+                  />
+                  {index > 1 && (
+                    <CButton color="danger" onClick={() => removePrompt(index)}>
+                      <strong>Clear</strong>
+                    </CButton>
+                  )}
+                </CInputGroup>
+                <CFormTextarea
+                  placeholder="[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
+                  disabled={isWaiting || isContinuePrompt}
+                  value={prompt}
+                  invalid={!!isError}
+                  onChange={(e) => updatePrompt(index, { requestId, prompt: e.target.value })}
+                  id="exampleFormControlTextarea1"
+                  rows={10}
+                ></CFormTextarea>
+              </CCard>
+            </CCol>
+          ))}
+        </CRow>
 
-        <div className="mb-3">
-          <CFormLabel htmlFor="exampleFormControlTextarea1">
-            <strong>Write your prompt </strong>- <small>RequestID: {requestId}</small>
-          </CFormLabel>
-          <CFormTextarea
-            placeholder="[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
-            disabled={isWaiting || isStreaming || isContinuePrompt}
-            value={prompt}
-            invalid={!!isError}
-            onChange={(e) => setPrompt(e.target.value)}
-            id="exampleFormControlTextarea1"
-            rows={10}
-          ></CFormTextarea>
-          <CFormFeedback invalid>
+        {!!isError && (
+          <div className="invalid-feedback d-block mt-0">
             {isError === 2
               ? 'Aborting might cause some data to be lost, its best to reset after aborting!'
               : errorText || 'Error generating a response, check your console'}
-          </CFormFeedback>
-        </div>
+          </div>
+        )}
 
         {responseTimes.length ? (
-          <CFormLabel htmlFor="exampleFormControlTextarea1">
+          <CFormLabel htmlFor="exampleFormControlTextarea1" className="mt-3">
             <strong>Response time history: </strong>
           </CFormLabel>
         ) : (
@@ -234,26 +260,33 @@ const RestApiBatchDashboard = () => {
         <div className="mb-3 ">
           <CButton
             color="primary"
-            disabled={isWaiting || isStreaming || !prompt}
-            onClick={() => sendPrompt(autoScroll)}
+            disabled={isWaiting || isContinuePrompt}
+            onClick={() => addPrompt()}
           >
-            {isStop && (isWaiting || isStreaming)
+            {' '}
+            +{' '}
+          </CButton>
+          <CButton
+            className="ms-3"
+            color="primary"
+            disabled={isWaiting}
+            onClick={() => sendPrompt()}
+          >
+            {isStop && isWaiting
               ? 'Stopping...'
               : isWaiting
                 ? 'Waiting...'
-                : isStreaming
-                  ? 'Streaming...'
-                  : isContinuePrompt
-                    ? 'Continue'
-                    : 'Send Prompt'}
+                : isContinuePrompt
+                  ? 'Continue'
+                  : 'Send Prompt'}
           </CButton>
-          {isContinuePrompt && !isWaiting && !isStreaming && ' or '}
-          {!isWaiting && !isStreaming && isContinuePrompt && (
-            <CButton color="secondary" disabled={isWaiting || isStreaming} onClick={resetPrompt}>
+          {isContinuePrompt && !isWaiting && ' or '}
+          {!isWaiting && isContinuePrompt && (
+            <CButton color="secondary" disabled={isWaiting} onClick={resetPrompt}>
               reset
             </CButton>
           )}
-          {isWaiting || isStreaming ? (
+          {isWaiting ? (
             <CFormLabel>
               <strong>&nbsp;&nbsp;Segment time:&nbsp;</strong>
               <Timer /> seconds
@@ -277,7 +310,7 @@ const RestApiBatchDashboard = () => {
           <CButton
             color="secondary"
             className="float-end"
-            disabled={!isWaiting && !isStreaming}
+            disabled={!isWaiting}
             onClick={abortRequest}
           >
             Abort
@@ -286,19 +319,8 @@ const RestApiBatchDashboard = () => {
         </div>
         <CFormCheck
           style={{ cursor: 'pointer' }}
-          checked={autoScroll}
-          onChange={(e) => setAutoScroll(e.target.checked)}
-          className="mt-2"
-          type="checkbox"
-          id="setAutoScroll"
-          label={
-            <span style={{ cursor: 'pointer' }}>Auto scroll to follow the generated response</span>
-          }
-        />
-        <CFormCheck
-          style={{ cursor: 'pointer' }}
           checked={autoContinue}
-          disabled={isWaiting || isStreaming}
+          disabled={isWaiting}
           onChange={(e) => setAutoContinue(e.target.checked)}
           className="mt-2"
           type="checkbox"
@@ -310,8 +332,13 @@ const RestApiBatchDashboard = () => {
           }
         />
       </CForm>
-
-      {response && <PromptResponse requestId={requestId} response={response} />}
+      <CRow>
+        {responses.map(({ request_id, response }) => (
+          <CCol sm={6} className="mt-4" key={`batch-prompt-${request_id}`}>
+            <PromptResponse key={request_id} requestId={request_id} response={response} />
+          </CCol>
+        ))}
+      </CRow>
     </>
   )
 }

@@ -132,7 +132,6 @@ const Dashboard = () => {
       setLastResponseTime(responseTime)
     } catch (e) {
       if (e.name === 'AbortError') {
-        console.log('Aborting')
         setIsError(2)
       } else {
         console.error(e)
@@ -161,7 +160,6 @@ const Dashboard = () => {
 
   const abortRequest = () => {
     setIsStop(true)
-    console.log(responseController)
     if (responseController) {
       responseController.abort()
     }

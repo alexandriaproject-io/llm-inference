@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { CButton, CCard, CCardBody, CCardHeader } from '@coreui/react'
+import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow } from '@coreui/react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import atomDark from 'react-syntax-highlighter/dist/cjs/styles/hljs/atom-one-dark'
 import docco from 'react-syntax-highlighter/dist/cjs/styles/hljs/docco'
@@ -30,14 +30,22 @@ const PromptResponse = ({ requestId, response }) => {
   return (
     <CCard className="mb-5 ">
       <CCardHeader>
-        Response to requestID {requestId}:
-        <CButton
-          color={rawResponse ? 'info' : 'light'}
-          className="float-end"
-          onClick={() => setRawResponse(!rawResponse)}
-        >
-          {rawResponse ? 'View markdown' : 'View raw response'}
-        </CButton>
+        <CRow>
+          <CCol sm={8}>
+            <div>Response to requestID:</div>
+            <small>{requestId}</small>
+          </CCol>
+          <CCol sm={4}>
+            <CButton
+              size="sm"
+              color={rawResponse ? 'info' : 'light'}
+              className="float-end mt-2"
+              onClick={() => setRawResponse(!rawResponse)}
+            >
+              {rawResponse ? 'View markdown' : 'View raw response'}
+            </CButton>
+          </CCol>
+        </CRow>
       </CCardHeader>
       <CCardBody>
         {rawResponse ? (
