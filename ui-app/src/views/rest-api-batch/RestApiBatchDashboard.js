@@ -168,7 +168,8 @@ const RestApiBatchDashboard = () => {
     setIsWaiting(false)
     setIsContinuePrompt(false)
   }
-  const removePrompt = (index) => {
+  const removePrompt = (id) => {
+    const index = prompts.findIndex((item) => item.id === id)
     prompts.splice(index, 1)
     setPrompts([...prompts])
   }
@@ -182,8 +183,12 @@ const RestApiBatchDashboard = () => {
       },
     ])
   }
-  const updatePrompt = (index, prompt) => {
-    prompts[index] = prompt
+  const updatePrompt = (id, prompt) => {
+    const index = prompts.findIndex((item) => item.id === id)
+    prompts[index] = {
+      ...prompts[index],
+      ...prompt,
+    }
     setPrompts([...prompts])
   }
   return (
@@ -205,10 +210,10 @@ const RestApiBatchDashboard = () => {
                     placeholder="requestId"
                     type="text"
                     value={requestId}
-                    onChange={(e) => updatePrompt(index, { prompt, requestId: e.target.value })}
+                    onChange={(e) => updatePrompt(id, { requestId: e.target.value })}
                   />
                   {index > 1 && (
-                    <CButton color="danger" onClick={() => removePrompt(index)}>
+                    <CButton color="danger" onClick={() => removePrompt(id)}>
                       <strong>Clear</strong>
                     </CButton>
                   )}
@@ -217,8 +222,8 @@ const RestApiBatchDashboard = () => {
                   placeholder="[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
                   disabled={isWaiting || isContinuePrompt}
                   value={prompt}
-                  invalid={!!isError}
-                  onChange={(e) => updatePrompt(index, { requestId, prompt: e.target.value })}
+                  invalid={!!isError || !prompt}
+                  onChange={(e) => updatePrompt(id, { prompt: e.target.value })}
                   id="exampleFormControlTextarea1"
                   rows={10}
                 ></CFormTextarea>
@@ -269,7 +274,7 @@ const RestApiBatchDashboard = () => {
           <CButton
             className="ms-3"
             color="primary"
-            disabled={isWaiting}
+            disabled={isWaiting || !prompts.every(({ prompt }) => !!prompt)}
             onClick={() => sendPrompt()}
           >
             {isStop && isWaiting
