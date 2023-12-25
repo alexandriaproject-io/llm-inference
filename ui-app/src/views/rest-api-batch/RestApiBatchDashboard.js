@@ -49,7 +49,7 @@ function replaceStringAtEnd(str, search, replace) {
   return str
 }
 
-const Dashboard = () => {
+const RestApiBatchDashboard = () => {
   const [requestId, setRequestId] = useState(uuidv4())
   const [prompt, setPrompt] = useState(
     '[INST] Generate a very long poem about 1000 cats [/INST]\n\n',
@@ -316,4 +316,4 @@ const Dashboard = () => {
   )
 }
 
-export default Dashboard
+export default RestApiBatchDashboard

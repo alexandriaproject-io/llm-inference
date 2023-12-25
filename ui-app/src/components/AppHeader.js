@@ -49,10 +49,10 @@ const AppHeader = () => {
             </CNavLink>
           </CNavItem>
           <CNavItem>
-            <CNavLink href="#">Rest API - Batch</CNavLink>
+            <CNavLink href="/ui/rest-api-batch">Rest API - Batch</CNavLink>
           </CNavItem>
           <CNavItem>
-            <CNavLink href="#">Websocket</CNavLink>
+            <CNavLink href="/ui/rest-api-ws">Websocket</CNavLink>
           </CNavItem>
         </CHeaderNav>
 
