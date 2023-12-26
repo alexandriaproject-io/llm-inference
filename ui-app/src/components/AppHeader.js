@@ -52,7 +52,7 @@ const AppHeader = () => {
             <CNavLink href="/ui/rest-api-batch">Rest API - Batch</CNavLink>
           </CNavItem>
           <CNavItem>
-            <CNavLink href="/ui/rest-api-ws">Websocket</CNavLink>
+            <CNavLink href="/ui/websocket">Websocket</CNavLink>
           </CNavItem>
         </CHeaderNav>
 
