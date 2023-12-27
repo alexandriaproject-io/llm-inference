@@ -1,5 +1,6 @@
 import queue
 import threading
+import time
 from cachetools import TTLCache
 from src.config import config
 from src.models.llm_model_class import LLMModel
@@ -64,6 +65,7 @@ def start_model_generator(execution_queue, events_queue, ready_event):
                 })
 
             try:
+                start = time.perf_counter()
                 sequences, past_key_values = llm_model.generate_cache(
                     tokens,
                     masks,
@@ -76,6 +78,7 @@ def start_model_generator(execution_queue, events_queue, ready_event):
                     "execution_id": execution_id,
                     "sequences": sequences,
                     "values": past_key_values,
+                    "execution_time": time.perf_counter() - start
                 })
             except Exception as error:
                 response_queue.put({

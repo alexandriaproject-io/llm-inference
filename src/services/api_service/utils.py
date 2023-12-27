@@ -38,15 +38,18 @@ class ResponseHandler:
 
             if queue_event["events_type"] == LLMEventTypes.INITIALIZED:
                 for event in queue_event["events"]:
-                    event['text'] = self.tokenizer.decode_output(event['tokens'])
+                    if event:
+                        event['text'] = self.tokenizer.decode_output(event['tokens'])
 
             elif queue_event["events_type"] == LLMEventTypes.PROGRESS:
                 for event in queue_event["events"]:
-                    event['text'] = self.tokenizer.decode_output(event['token'])
+                    if event:
+                        event['text'] = self.tokenizer.decode_output(event['token'])
 
             elif queue_event["events_type"] == LLMEventTypes.COMPLETE:
                 for event in queue_event["events"]:
-                    event['text'] = self.tokenizer.decode_output(event['tokens'])
+                    if event:
+                        event['text'] = self.tokenizer.decode_output(event['tokens'])
 
             # Route the event to the appropriate execution queue if it exists
             if execution_id in self.execution_queues:
