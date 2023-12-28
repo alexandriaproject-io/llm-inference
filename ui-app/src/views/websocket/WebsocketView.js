@@ -18,7 +18,8 @@ import {
 import PromptResponse from '../../components/PromptResponse'
 import Timer from '../../components/Timer'
 
-const API_PATH = `${process.env.REACT_APP_BASE_URL || ''}/api/ws`.replace(/^http/i, 'ws')
+const hostname = window.location.href.split('/')[0] + '//' + window.location.host
+const API_PATH = `${process.env.REACT_APP_BASE_URL || hostname}/api/ws`.replace(/^http/i, 'ws')
 
 const WebsocketView = () => {
   const [generationConfig, setGenerationConfig] = useState({})
@@ -156,6 +157,19 @@ const WebsocketView = () => {
         setIsQueued(false)
         break
       case 'INITIALIZED':
+        if (isWaiting) {
+          setIsWaiting(false)
+          setIsStreaming(true)
+        }
+        if (!generationConfig?.requestConfig?.onlyNewTokens) {
+          setPrompts([
+            ...prompts.map((prompt) => {
+              prompt.response = eventsHash[prompt.request_id]?.text || ''
+              return prompt
+            }),
+          ])
+        }
+        break
       case 'PROGRESS':
         if (isWaiting) {
           setIsWaiting(false)
