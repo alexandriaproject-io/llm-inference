@@ -53,7 +53,7 @@ async def handle_message(ws, msg, executions):
                 if stream_response:
                     await ws.send_json([{
                         "request_id": event["request_id"],
-                        "text": event["text"],
+                        "text": event["text"] if not only_new_tokens else '',
                         "type": "INITIALIZED"
                     } for event in events["events"] if event is not None])
 
