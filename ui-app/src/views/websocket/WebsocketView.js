@@ -7,6 +7,7 @@ import {
   CButton,
   CCard,
   CCol,
+  CFormCheck,
   CFormInput,
   CFormLabel,
   CFormTextarea,
@@ -36,11 +37,18 @@ const WebsocketView = () => {
   const [isStop, setIsStop] = useState(false)
   const [autoContinue, setAutoContinue] = useState(false)
   const [isWaiting, setIsWaiting] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [isQueued, setIsQueued] = useState(false)
+
   const [isContinuePrompt, setIsContinuePrompt] = useState(false)
-  const [isError, setIsError] = useState(0)
-  const [errorText, setErrorText] = useState('')
   const [responseTimes, setResponseTimes] = useState([])
   const [lastResponseTime, setLastResponseTime] = useState(0)
+  const [nonce, setNonce] = useState(0)
+  const [executionStart, setExecutionStart] = useState(0)
+  const [autoScroll, setAutoScroll] = useState(true)
+
+  const [isError, setIsError] = useState(0)
+  const [errorText, setErrorText] = useState('')
 
   useEffect(() => {
     if (autoContinue && isContinuePrompt && !isWaiting && !isStop && !isError) {
@@ -48,14 +56,13 @@ const WebsocketView = () => {
     } else {
       setIsStop(false)
     }
-  }, [lastResponseTime])
+  }, [nonce])
 
   const onStatus = (status) => setWsStatus(status)
   const onClose = () => setWs(null)
   const onConnect = (socket, connetionId) => {
     setWs(socket)
   }
-
   const removePrompt = (id) => {
     const index = prompts.findIndex((item) => item.id === id)
     prompts.splice(index, 1)
@@ -79,19 +86,29 @@ const WebsocketView = () => {
     }
     setPrompts([...prompts])
   }
-
   const resetPrompt = () => {
     setIsStop(false)
-    setPrompts(prompts.map((prompt) => ({ ...prompt, request_id: uuidv4() })))
+    setPrompts(prompts.map((prompt) => ({ ...prompt, request_id: uuidv4(), response: '' })))
     setResponseTimes([])
     setIsError(0)
     setErrorText('')
     setIsWaiting(false)
     setIsContinuePrompt(false)
   }
-  const sendPrompt = () => {
+  const sendPrompt = (scrollToText) => {
+    console.log('sendPrompt')
     if (!ws) {
       return
+    }
+    setIsWaiting(true)
+    if (!isContinuePrompt) {
+      setResponseTimes([])
+      setPrompts([
+        ...prompts.map((prompt) => {
+          prompt.response = ''
+          return prompt
+        }),
+      ])
     }
     ws.send(
       JSON.stringify({
@@ -101,10 +118,81 @@ const WebsocketView = () => {
         stream_response: !!generationConfig?.requestConfig?.streamResponse,
       }),
     )
+    if (isContinuePrompt) {
+      window.scrollLock = scrollToText ?? window.scrollLock
+    } else {
+      window.setTimeout(() => (window.scrollLock = scrollToText ?? window.scrollLock), 250)
+    }
   }
 
-  const onMessage = (event) => {
-    console.log('Message from server ', event.data)
+  useEffect(() => {
+    if (autoContinue && isContinuePrompt && !isStreaming && !isWaiting && !isStop && !isError) {
+      sendPrompt() // need to allow the states to update before continuing
+    } else {
+      setIsStop(false)
+    }
+  }, [nonce])
+
+  const onMessage = (data) => {
+    if (!data.length) {
+      console.log('Got empty events array!')
+      return
+    }
+    const type = data[0].type
+    const eventsHash = data.reduce((res, item) => {
+      res[item.request_id] = item
+      return res
+    }, {})
+
+    switch (type) {
+      case 'ACCEPTED':
+        setIsQueued(true)
+        break
+      case 'STARTED':
+        setExecutionStart(new Date().getTime())
+        break
+      case 'INITIALIZED':
+      case 'PROGRESS':
+        if (isWaiting) {
+          setIsWaiting(false)
+          setIsStreaming(true)
+        }
+        setPrompts([
+          ...prompts.map((prompt) => {
+            prompt.response += eventsHash[prompt.request_id]?.text || ''
+            return prompt
+          }),
+        ])
+        break
+      case 'COMPLETE':
+        setIsWaiting(false)
+        setIsStreaming(false)
+        if (!isStreaming) {
+          setPrompts([
+            ...prompts.map((prompt) => {
+              if (generationConfig?.requestConfig?.onlyNewTokens) {
+                prompt.response += eventsHash[prompt.request_id]?.text || ''
+              } else {
+                prompt.response = eventsHash[prompt.request_id]?.text || ''
+              }
+              return prompt
+            }),
+          ])
+        }
+        const isAllEos = data.every(({ is_eos }) => is_eos)
+        setIsContinuePrompt(!isAllEos)
+        const lastResponseTime = new Date().getTime() - executionStart
+        setLastResponseTime(lastResponseTime)
+        setResponseTimes([...responseTimes, lastResponseTime])
+        setNonce(nonce + 1)
+        break
+      case 'ERROR':
+        setIsWaiting(false)
+        setIsStreaming(false)
+        break
+      default:
+        console.warn(`Type ${type} is not handled!`)
+    }
   }
 
   return (
@@ -137,7 +225,11 @@ const WebsocketView = () => {
                   onChange={(e) => updatePrompt(id, { request_id: e.target.value })}
                 />
                 {index > 0 && (
-                  <CButton color="danger" onClick={() => removePrompt(id)}>
+                  <CButton
+                    color="danger"
+                    disabled={isContinuePrompt}
+                    onClick={() => removePrompt(id)}
+                  >
                     <strong>Clear</strong>
                   </CButton>
                 )}
@@ -176,7 +268,7 @@ const WebsocketView = () => {
       <div className="mb-3 ">
         <CButton
           color="primary"
-          disabled={isWaiting || isContinuePrompt}
+          disabled={isWaiting || isStreaming || isContinuePrompt}
           onClick={() => addPrompt()}
         >
           {' '}
@@ -185,8 +277,13 @@ const WebsocketView = () => {
         <CButton
           className="ms-3"
           color="primary"
-          disabled={isWaiting || !prompts.every(({ prompt }) => !!prompt)}
-          onClick={() => sendPrompt()}
+          disabled={
+            wsStatus !== 'connected' ||
+            isWaiting ||
+            isStreaming ||
+            !prompts.every(({ prompt }) => !!prompt)
+          }
+          onClick={() => sendPrompt(autoScroll && prompts.length < 3)}
         >
           {isStop && isWaiting
             ? 'Stopping...'
@@ -196,13 +293,13 @@ const WebsocketView = () => {
                 ? 'Continue'
                 : 'Send Prompt'}
         </CButton>
-        {isContinuePrompt && !isWaiting && ' or '}
-        {!isWaiting && isContinuePrompt && (
-          <CButton color="secondary" disabled={isWaiting} onClick={resetPrompt}>
+        {isContinuePrompt && !isWaiting && !isStreaming && ' or '}
+        {isContinuePrompt && !isWaiting && !isStreaming && (
+          <CButton color="secondary" disabled={isWaiting || isStreaming} onClick={resetPrompt}>
             reset
           </CButton>
         )}
-        {isWaiting ? (
+        {isWaiting || isStreaming ? (
           <CFormLabel>
             <strong>&nbsp;&nbsp;Segment time:&nbsp;</strong>
             <Timer /> seconds
@@ -225,6 +322,32 @@ const WebsocketView = () => {
         </CButton>
         &nbsp;&nbsp;
       </div>
+
+      <CFormCheck
+        style={{ cursor: 'pointer' }}
+        checked={autoScroll}
+        onChange={(e) => setAutoScroll(e.target.checked)}
+        className="mt-2"
+        type="checkbox"
+        id="setAutoScroll"
+        label={
+          <span style={{ cursor: 'pointer' }}>Auto scroll to follow the generated response</span>
+        }
+      />
+      <CFormCheck
+        style={{ cursor: 'pointer' }}
+        checked={autoContinue && prompts.length < 3}
+        disabled={isWaiting || isStreaming || prompts.length > 2}
+        onChange={(e) => setAutoContinue(e.target.checked)}
+        className="mt-2"
+        type="checkbox"
+        id="autoContinueCheck"
+        label={
+          <span style={{ cursor: 'pointer' }}>
+            Automatically continue prompt generation when didnt reach EOS
+          </span>
+        }
+      />
 
       <CRow>
         {prompts.map(({ id, request_id, response }) => (
