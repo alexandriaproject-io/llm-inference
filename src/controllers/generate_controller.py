@@ -36,7 +36,7 @@ async def generate_one(request):
         is_streaming = stream_response and (generation_config.get("num_beams", 1) == 1 if generation_config else True)
 
         start_time = time.perf_counter()
-        response_queue = await request.executions.execute_prompts(
+        response_queue, remove_queue = await request.executions.execute_prompts(
             [request_id],
             [prompt],
             generation_config,
@@ -76,7 +76,7 @@ async def generate_one(request):
                         else:
                             await response.write(event["text"].replace(initialization, '').encode('utf-8'))
                     break
-
+        remove_queue()
         diff = time.perf_counter() - start_time
         log.info(f"Generation of {counter} tokens was {diff} seconds at {counter / diff} t/s")
         await response.write_eof()
@@ -107,7 +107,7 @@ async def generate_batch(request):
             return web.Response(text="Duplicate request_ids", status=400)
 
         start_time = time.perf_counter()
-        response_queue = await request.executions.execute_prompts(
+        response_queue, remove_queue = await request.executions.execute_prompts(
             request_ids,
             request_prompts,
             generation_config,
@@ -133,7 +133,7 @@ async def generate_batch(request):
                 total_count = sum(result['new_tokens'] for result in results)
                 is_complete = events["is_eos_all"]
                 break
-
+        remove_queue()
         diff = time.perf_counter() - start_time
         log.info(f"Execution of {total_count} total tokens was {diff} seconds at {total_count / diff} t/s")
 

@@ -22,7 +22,7 @@ async def handle_message(ws, msg, executions):
         request_prompts = [item['prompt'] for item in prompts]
         await ws.send_str(json.dumps([{"request_id": request_id, "type": 'ACCEPTED'} for request_id in request_ids]))
 
-        response_queue = await executions.execute_prompts(
+        response_queue, remove_queue = await executions.execute_prompts(
             request_ids,
             request_prompts,
             generation_config,
@@ -31,6 +31,9 @@ async def handle_message(ws, msg, executions):
         initializations = []
         while True:
             events = await response_queue.get()
+            if ws.closed:
+                break
+
             if events is None:
                 await ws.send_str('{"error": "Server is shutting down."}')
                 await ws.close()
@@ -80,9 +83,10 @@ async def handle_message(ws, msg, executions):
                     "type": "COMPLETE"
                 } for event, initialization in zip(events["events"], initializations) if event is not None])
                 total_count = sum(result['new_tokens'] for result in events["events"])
-                log.info(f"Execution took of {total_count} tokens was {events['execution_time']} sec at {total_count/events['execution_time']} t/s")
+                log.info(
+                    f"Execution took of {total_count} tokens was {events['execution_time']} sec at {total_count / events['execution_time']} t/s")
                 break
-
+        remove_queue()
     except json.JSONDecodeError:
         await ws.send_str('{"error": "Invalid JSON received"}')
 
