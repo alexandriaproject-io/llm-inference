@@ -64,6 +64,7 @@ const RestApiBatchDashboard = () => {
   const [isWaiting, setIsWaiting] = useState(false)
   const [isContinuePrompt, setIsContinuePrompt] = useState(false)
   const [generationConfig, setGenerationConfig] = useState({})
+  const [nonce, setNonce] = useState(0)
 
   useEffect(() => {
     if (autoContinue && isContinuePrompt && !isWaiting && !isStop && !isError) {
@@ -71,7 +72,7 @@ const RestApiBatchDashboard = () => {
     } else {
       setIsStop(false)
     }
-  }, [lastResponseTime])
+  }, [nonce])
 
   const sendPrompt = async () => {
     setIsWaiting(true)
@@ -123,6 +124,7 @@ const RestApiBatchDashboard = () => {
           setResponseTimes([...responseTimes, responseTime])
         }
         setLastResponseTime(responseTime)
+        setNonce(nonce + 1)
         const isEos = response.status === 200
         setIsContinuePrompt(!isEos)
         if (isEos) {

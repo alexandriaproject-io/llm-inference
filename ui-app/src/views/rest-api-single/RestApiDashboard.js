@@ -60,6 +60,7 @@ const Dashboard = () => {
   const [isStreaming, setIsStreaming] = useState(false)
   const [isContinuePrompt, setIsContinuePrompt] = useState(false)
   const [generationConfig, setGenerationConfig] = useState({})
+  const [nonce, setNonce] = useState(0)
 
   useEffect(() => {
     if (autoContinue && isContinuePrompt && !isStreaming && !isWaiting && !isStop && !isError) {
@@ -67,7 +68,7 @@ const Dashboard = () => {
     } else {
       setIsStop(false)
     }
-  }, [lastResponseTime])
+  }, [nonce])
   const sendPrompt = async (scrollToText) => {
     if (isContinuePrompt) {
       window.scrollLock = scrollToText ?? window.scrollLock
@@ -123,6 +124,7 @@ const Dashboard = () => {
       }
 
       setLastResponseTime(responseTime)
+      setNonce(nonce + 1)
     } catch (e) {
       if (e.name === 'AbortError') {
         setIsError(2)

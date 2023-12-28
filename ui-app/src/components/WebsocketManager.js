@@ -47,7 +47,7 @@ const WebsocketManager = ({
     try {
       data = JSON.parse(event.data)
     } catch (e) {}
-    wsCallbackHash[connectionId].onMessage(data, event)
+    wsCallbackHash[connectionId]?.onMessage(data, event)
   }
 
   const closeSocket = (ws) => {
@@ -68,24 +68,24 @@ const WebsocketManager = ({
     setStatus('connecting')
     socket.status = 'connecting'
     setWs(socket)
-    wsCallbackHash[connectionId].onConnecting(socket, connectionId)
+    wsCallbackHash[connectionId]?.onConnecting(socket, connectionId)
 
     socket.addEventListener('open', function (event) {
       setStatus('connected')
       socket.status = 'connected'
-      wsCallbackHash[connectionId].onConnect(socket, connectionId)
+      wsCallbackHash[connectionId]?.onConnect(socket, connectionId)
     })
 
     socket.addEventListener('close', function (event) {
       socket.status !== 'connecting' && socket.status !== 'closing' && setStatus('closed')
       socket.status = 'closed'
-      wsCallbackHash[connectionId].onClose(socket, connectionId)
+      wsCallbackHash[connectionId]?.onClose(socket, connectionId)
     })
 
     socket.addEventListener('error', function (event) {
       socket.status = 'error'
       setStatus('error')
-      wsCallbackHash[connectionId].onError(socket, connectionId)
+      wsCallbackHash[connectionId]?.onError(socket, connectionId)
     })
 
     socket.addEventListener('message', onWsMessage)
