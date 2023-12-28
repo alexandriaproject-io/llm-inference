@@ -39,6 +39,11 @@ async def handle_message(ws, msg, executions):
             if events["events_type"] == LLMEventTypes.ERROR:
                 error_message = str(events.get("error", "Unknown error occurred"))
                 log.error(f"Requests {', '.join(request_ids)} error: {error_message}")
+                await ws.send_json([{
+                    "request_id": event["request_id"],
+                    "type": "ERROR",
+                    "error": str(event["error"])
+                } for event in events["events"] if event is not None])
                 break
 
             elif events["events_type"] == LLMEventTypes.START:
