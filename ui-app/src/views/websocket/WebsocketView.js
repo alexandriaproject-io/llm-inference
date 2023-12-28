@@ -59,7 +59,10 @@ const WebsocketView = () => {
   }, [nonce])
 
   const onStatus = (status) => setWsStatus(status)
-  const onClose = () => setWs(null)
+  const onClose = () => {
+    setWs(null)
+    abortRequest()
+  }
   const onConnect = (socket, connetionId) => {
     setWs(socket)
   }
@@ -99,6 +102,7 @@ const WebsocketView = () => {
 
   const abortRequest = () => {
     setIsStop(true)
+    setIsQueued(false)
     setIsWaiting(false)
     setIsStreaming(false)
   }
