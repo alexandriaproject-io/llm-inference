@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunk_coreui_coreui_free_react_admin_template=self.webpackChunk_coreui_coreui_free_react_admin_template||[]).push([[915],{61915:(e,r,_)=>{_.r(r),_.d(r,{default:()=>c});_(72791);var a=_(80184);const c=()=>(0,a.jsx)(a.Fragment,{children:"Hello2"})}}]);
-//# sourceMappingURL=915.c3da5afb.chunk.js.map
