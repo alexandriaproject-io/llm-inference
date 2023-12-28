@@ -213,7 +213,11 @@ const RestApiBatchDashboard = () => {
                     onChange={(e) => updatePrompt(id, { requestId: e.target.value })}
                   />
                   {index > 1 && (
-                    <CButton color="danger" onClick={() => removePrompt(id)}>
+                    <CButton
+                      disabled={isContinuePrompt}
+                      color="danger"
+                      onClick={() => removePrompt(id)}
+                    >
                       <strong>Clear</strong>
                     </CButton>
                   )}

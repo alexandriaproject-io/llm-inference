@@ -17,6 +17,8 @@ const getWsColor = (wsStatus) => {
   }
 }
 
+const wsCallbackHash = {}
+
 const WebsocketManager = ({
   wsUrl,
   onConnecting = () => undefined,
@@ -30,8 +32,22 @@ const WebsocketManager = ({
   const [ws, setWs] = useState(null)
   const [wsStatus, setWsStatus] = useState('connecting')
 
+  // Required workarround so react won't lose the parent state on callbacks
+  wsCallbackHash[connectionId] = {
+    onConnecting,
+    onConnect,
+    onError,
+    onClose,
+    onMessage,
+    onStatus,
+  }
+
   const onWsMessage = (event) => {
-    onMessage(event)
+    let data = event.data
+    try {
+      data = JSON.parse(event.data)
+    } catch (e) {}
+    wsCallbackHash[connectionId].onMessage(data, event)
   }
 
   const closeSocket = (ws) => {
@@ -46,33 +62,35 @@ const WebsocketManager = ({
     setWsStatus(status)
     onStatus(status)
   }
+
   useEffect(() => {
     const socket = new WebSocket(wsUrl)
     setStatus('connecting')
     socket.status = 'connecting'
     setWs(socket)
-    onConnecting(socket, connectionId)
+    wsCallbackHash[connectionId].onConnecting(socket, connectionId)
 
     socket.addEventListener('open', function (event) {
       setStatus('connected')
       socket.status = 'connected'
-      onConnect(socket, connectionId)
+      wsCallbackHash[connectionId].onConnect(socket, connectionId)
     })
 
     socket.addEventListener('close', function (event) {
       socket.status !== 'connecting' && socket.status !== 'closing' && setStatus('closed')
       socket.status = 'closed'
-      onClose(socket, connectionId)
+      wsCallbackHash[connectionId].onClose(socket, connectionId)
     })
 
     socket.addEventListener('error', function (event) {
       socket.status = 'error'
       setStatus('error')
-      onError(socket, connectionId)
+      wsCallbackHash[connectionId].onError(socket, connectionId)
     })
 
     socket.addEventListener('message', onWsMessage)
     return () => {
+      delete wsCallbackHash[connectionId]
       closeSocket(ws)
     }
   }, [connectionId])
