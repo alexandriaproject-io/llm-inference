@@ -93,10 +93,17 @@ const WebsocketView = () => {
     setIsError(0)
     setErrorText('')
     setIsWaiting(false)
+    setIsQueued(false)
     setIsContinuePrompt(false)
   }
+
+  const abortRequest = () => {
+    setIsStop(true)
+    setIsWaiting(false)
+    setIsStreaming(false)
+  }
+
   const sendPrompt = (scrollToText) => {
-    console.log('sendPrompt')
     if (!ws) {
       return
     }
@@ -125,17 +132,9 @@ const WebsocketView = () => {
     }
   }
 
-  useEffect(() => {
-    if (autoContinue && isContinuePrompt && !isStreaming && !isWaiting && !isStop && !isError) {
-      sendPrompt() // need to allow the states to update before continuing
-    } else {
-      setIsStop(false)
-    }
-  }, [nonce])
-
   const onMessage = (data) => {
     if (!data.length) {
-      console.log('Got empty events array!')
+      console.log('Got empty events array, this is normal...')
       return
     }
     const type = data[0].type
@@ -150,6 +149,7 @@ const WebsocketView = () => {
         break
       case 'STARTED':
         setExecutionStart(new Date().getTime())
+        setIsQueued(false)
         break
       case 'INITIALIZED':
       case 'PROGRESS':
@@ -189,6 +189,9 @@ const WebsocketView = () => {
       case 'ERROR':
         setIsWaiting(false)
         setIsStreaming(false)
+        setIsQueued(false)
+        setIsError(true)
+        setErrorText(data[0].error)
         break
       default:
         console.warn(`Type ${type} is not handled!`)
@@ -247,7 +250,11 @@ const WebsocketView = () => {
           </CCol>
         ))}
       </CRow>
-
+      {!!isError && (
+        <div className="invalid-feedback d-block mt-2">
+          {isError && (errorText || 'Error generating a response, check your console')}
+        </div>
+      )}
       {responseTimes.length ? (
         <CFormLabel htmlFor="exampleFormControlTextarea1" className="mt-3">
           <strong>Response time history: </strong>
@@ -265,7 +272,7 @@ const WebsocketView = () => {
           : ''}
       </div>
 
-      <div className="mb-3 ">
+      <div>
         <CButton
           color="primary"
           disabled={isWaiting || isStreaming || isContinuePrompt}
@@ -285,13 +292,17 @@ const WebsocketView = () => {
           }
           onClick={() => sendPrompt(autoScroll && prompts.length < 3)}
         >
-          {isStop && isWaiting
+          {isStop && (isWaiting || isStreaming || isQueued)
             ? 'Stopping...'
-            : isWaiting
-              ? 'Waiting...'
-              : isContinuePrompt
-                ? 'Continue'
-                : 'Send Prompt'}
+            : isQueued
+              ? 'In Queue...'
+              : isWaiting
+                ? 'Waiting...'
+                : isStreaming
+                  ? 'Streaming...'
+                  : isContinuePrompt
+                    ? 'Continue'
+                    : 'Send Prompt'}
         </CButton>
         {isContinuePrompt && !isWaiting && !isStreaming && ' or '}
         {isContinuePrompt && !isWaiting && !isStreaming && (
@@ -320,12 +331,24 @@ const WebsocketView = () => {
         >
           Stop
         </CButton>
+        <CButton
+          color="secondary"
+          className="float-end"
+          disabled={!isWaiting && !isStreaming}
+          onClick={abortRequest}
+        >
+          Abort
+        </CButton>
         &nbsp;&nbsp;
       </div>
+      {wsStatus !== 'connected' && (
+        <div className="valid-feedback d-block mt-1 mb-3">Websocket is not connected</div>
+      )}
 
       <CFormCheck
         style={{ cursor: 'pointer' }}
-        checked={autoScroll}
+        checked={autoScroll && prompts.length < 3}
+        disabled={prompts.length > 2}
         onChange={(e) => setAutoScroll(e.target.checked)}
         className="mt-2"
         type="checkbox"
@@ -336,8 +359,8 @@ const WebsocketView = () => {
       />
       <CFormCheck
         style={{ cursor: 'pointer' }}
-        checked={autoContinue && prompts.length < 3}
-        disabled={isWaiting || isStreaming || prompts.length > 2}
+        checked={autoContinue}
+        disabled={isWaiting || isStreaming}
         onChange={(e) => setAutoContinue(e.target.checked)}
         className="mt-2"
         type="checkbox"
