@@ -151,7 +151,7 @@ class LLMModel:
         with torch.inference_mode():
             model_output = self.model.generate(
                 input_ids=tokens,
-                attention_mask=attention_mask if not past_key_values else None,
+                attention_mask=attention_mask,
                 past_key_values=past_key_values,
                 use_cache=True,  # Ensure caching is enabled - HUGE performance hit on streaming tokens
                 return_dict_in_generate=True,  # Return a dictionary containing past_key_values - required for use_cache
