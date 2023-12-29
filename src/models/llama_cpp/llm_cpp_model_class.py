@@ -77,18 +77,17 @@ class LLMCPPModel:
                         config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"])),
                 )
 
+                responses[0].append(output["choices"][0]["text"])
                 # Nasty work around to mimic the GPU model behaviour without going too technical
-                r_tokens = self.tokenizer.encode(output["choices"][0]["text"], False)
-                first_space = output["choices"][0]["text"].startswith(" ")
-                responses[0].append('')
-                for index, r_token in enumerate(r_tokens):
-                    text = self.tokenizer.decode([r_token])
-                    if index == 0 and not first_space:
-                        text = text.lstrip()
-                    responses[0].append(text)
-
+                new_tokens = output["usage"]["completion_tokens"]
                 if output["choices"][0]['finish_reason'] == "stop":
                     text = '</s>'
                     responses[0].append(text)
+                    pad_tokens = new_tokens - 1
+                else:
+                    pad_tokens = new_tokens
 
+                if pad_tokens > 0:
+                    for i in range(pad_tokens):
+                        responses[0].append('')
         return responses, None
