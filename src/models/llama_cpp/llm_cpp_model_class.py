@@ -1,6 +1,7 @@
 from logger import log
 import llama_cpp
 from src.models.llama_cpp.utils import MockTensor
+from src.config import config
 
 
 class NotReadyException(Exception):
@@ -20,10 +21,14 @@ class LLMCPPModel:
         self.cache = None
 
     def load_model(self):
-        self.model = llama_cpp.Llama(model_path=self.model_path)
+        self.model = llama_cpp.Llama(
+            model_path=self.model_path,
+            n_ctx=config.LLAMA_CPP_MAX_CONTEXT,
+            n_batch=config.LLAMA_CPP_BATCH_TOKENS,
+        )
         self.model.set_seed(self.config['MODEL_SEED'])
         self.tokenizer = self.model.tokenizer()
-        self.cache = llama_cpp.LlamaRAMCache(1024 * 1024 * 512)  # 512mb of cache
+        self.cache = llama_cpp.LlamaRAMCache(1024 * 1024 * config.LLAMA_RAM_CACHE_MB)  # 512mb of cache
         self.model.set_cache(self.cache)
 
     def run_model(self):
@@ -33,7 +38,7 @@ class LLMCPPModel:
     def generate_cache(self, prompts, attention_mask, past_key_values, config, streamer=None):
         if not self.isReady:
             raise NotReadyException("Model not ready.Please Use Model.load_model(path, config) and Model.run_model()")
-
+        log.warn("'num_beams' and 'do_sample' are not supported. num_beams is always 1 and do_sample always true")
         responses = [[prompt] for prompt in prompts]
         if (len(prompts) > 1):
             log.warn("llama_ccp doesnt support batching, this will be slow")
@@ -44,6 +49,12 @@ class LLMCPPModel:
                 stream = self.model.create_completion(
                     prompts[0],
                     max_tokens=int(config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"])),
+                    temperature=float(config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"])),
+                    top_p=float(config.get("top_p", self.config["MODEL_DEFAULT_TOP_P"])),
+                    top_k=int(config.get("top_k", self.config["MODEL_DEFAULT_TOP_K"])),
+                    repeat_penalty=float(config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"])),
+                    presence_penalty=float(
+                        config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"])),
                     stream=True
                 )
                 for output in stream:
@@ -56,14 +67,24 @@ class LLMCPPModel:
                         streamer.put(MockTensor([text], 1))
             else:
                 output = self.model.create_completion(
-                    self.tokenizer.encode(prompts[0]),
-                    max_tokens=int(config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"]))
+                    prompts[0],
+                    max_tokens=int(config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"])),
+                    temperature=float(config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"])),
+                    top_p=float(config.get("top_p", self.config["MODEL_DEFAULT_TOP_P"])),
+                    top_k=int(config.get("top_k", self.config["MODEL_DEFAULT_TOP_K"])),
+                    repeat_penalty=float(config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"])),
+                    presence_penalty=float(
+                        config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"])),
                 )
 
-                # Nasty work around to mimic the GPU model behaviour
-                r_tokens = self.tokenizer.encode(output["choices"][0]["text"])
-                for r_token in r_tokens:
+                # Nasty work around to mimic the GPU model behaviour without going too technical
+                r_tokens = self.tokenizer.encode(output["choices"][0]["text"], False)
+                first_space = output["choices"][0]["text"].startswith(" ")
+                responses[0].append('')
+                for index, r_token in enumerate(r_tokens):
                     text = self.tokenizer.decode([r_token])
+                    if index == 0 and not first_space:
+                        text = text.lstrip()
                     responses[0].append(text)
 
                 if output["choices"][0]['finish_reason'] == "stop":

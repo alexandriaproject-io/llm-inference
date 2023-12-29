@@ -12,8 +12,13 @@ MAX_CACHE_TTL = int(os.getenv("MAX_CACHE_TTL", "3600"))
 
 # Model inference configuration
 MODEL_PATH = os.getenv("MODEL_PATH")
-ENABLE_CUDA = os.getenv("ENABLE_CUDA", "true").lower() == 'true'
+
 USE_LLAMA_CPP = os.getenv("USE_LLAMA_CPP", "false").lower() == 'true'
+LLAMA_CPP_MAX_CONTEXT = int(os.getenv("LLAMA_CPP_MAX_CONTEXT", "2048"))
+LLAMA_CPP_BATCH_TOKENS = int(os.getenv("LLAMA_CPP_BATCH_TOKENS", "2048"))
+LLAMA_RAM_CACHE_MB = int(os.getenv("LLAMA_RAM_CACHE_MB", "512"))
+
+ENABLE_CUDA = os.getenv("ENABLE_CUDA", "true").lower() == 'true'
 TARGET_GPU_INDEX = int(os.getenv("TARGET_GPU_INDEX", "0"))
 LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "False").lower() == 'true'
 LOAD_IN_8BIT = os.getenv("LOAD_IN_8BIT", "False").lower() == 'true'
