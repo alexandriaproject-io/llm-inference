@@ -3,7 +3,7 @@ import threading
 import time
 from cachetools import TTLCache
 from src.config import config
-from src.models.llm_model_class import LLMModel
+from src.models.huggingface.llm_model_class import LLMModel
 from src.services.inference_service.utils import check_request_cache, ResponseQueueStreamer, LLMInternalEventTypes
 from src.services.inference_service.inference_response_service import handle_model_responses
 

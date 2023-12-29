@@ -3,7 +3,7 @@ from src.config import config
 import time
 import torch
 import queue
-from src.models.llm_model_class import LLMModel
+from src.models.huggingface.llm_model_class import LLMModel
 
 llm_model = LLMModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
 llm_model.load_model()

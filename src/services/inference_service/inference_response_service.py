@@ -1,7 +1,7 @@
 from cachetools import TTLCache
 from src.config import config
 from src.config.types import LLMEventTypes
-from src.models.llm_tokenizer import LLMTokenizer
+from src.models.huggingface.llm_tokenizer import LLMTokenizer
 from src.services.inference_service.utils import LLMInternalEventTypes
 
 

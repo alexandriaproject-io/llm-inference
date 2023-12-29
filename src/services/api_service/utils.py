@@ -1,7 +1,7 @@
 import uuid
 import asyncio
 from aiohttp import web
-from src.models.llm_tokenizer import LLMTokenizer
+from src.models.huggingface.llm_tokenizer import LLMTokenizer
 from src.config import config
 from src.config.types import LLMEventTypes
 from cachetools import TTLCache
