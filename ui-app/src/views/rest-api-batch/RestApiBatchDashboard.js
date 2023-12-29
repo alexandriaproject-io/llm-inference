@@ -114,7 +114,7 @@ const RestApiBatchDashboard = () => {
             }
             return {
               ...data,
-              response: (full.response += data.response),
+              response: (full.response += (data.prompt || '') + data.response),
             }
           }),
         )

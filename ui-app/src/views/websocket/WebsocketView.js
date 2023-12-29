@@ -157,6 +157,19 @@ const WebsocketView = () => {
         setIsQueued(false)
         break
       case 'INITIALIZED':
+        if (isWaiting) {
+          setIsWaiting(false)
+          setIsStreaming(true)
+        }
+        if (!generationConfig?.requestConfig?.onlyNewTokens) {
+          setPrompts([
+            ...prompts.map((prompt) => {
+              prompt.response = eventsHash[prompt.request_id]?.text || ''
+              return prompt
+            }),
+          ])
+        }
+        break
       case 'PROGRESS':
         if (isWaiting) {
           setIsWaiting(false)
