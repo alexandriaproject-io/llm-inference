@@ -18,7 +18,8 @@ import {
 import PromptResponse from '../../components/PromptResponse'
 import Timer from '../../components/Timer'
 
-const API_PATH = `${process.env.REACT_APP_BASE_URL || ''}/api/ws`.replace(/^http/i, 'ws')
+const hostname = window.location.href.split('/')[0] + '//' + window.location.host
+const API_PATH = `${process.env.REACT_APP_BASE_URL || hostname}/api/ws`.replace(/^http/i, 'ws')
 
 const WebsocketView = () => {
   const [generationConfig, setGenerationConfig] = useState({})
