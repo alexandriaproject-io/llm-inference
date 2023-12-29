@@ -4,8 +4,11 @@ import time
 from cachetools import TTLCache
 from src.config import config
 from src.models.huggingface.llm_model_class import LLMModel
+from src.models.llama_cpp.llm_cpp_model_class import LLMCPPModel
 from src.services.inference_service.utils import check_request_cache, ResponseQueueStreamer, LLMInternalEventTypes
-from src.services.inference_service.inference_response_service import handle_model_responses
+from src.services.inference_service.inference_response_service import handle_model_responses, handle_cpp_model_responses
+
+import src.models.huggingface as huggingface
 
 
 def start_model_generator(execution_queue, events_queue, ready_event):
@@ -13,16 +16,27 @@ def start_model_generator(execution_queue, events_queue, ready_event):
     cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
     execution_cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
 
-    llm_model = LLMModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
-    llm_model.load_model()
-    llm_model.run_model()
+    print(config.USE_LLAMA_CPP)
+    if config.USE_LLAMA_CPP:
+        llm_model = LLMCPPModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
+        llm_model.load_model()
+        llm_model.run_model()
+        threading.Thread(
+            target=handle_cpp_model_responses,
+            args=(response_queue, events_queue, execution_cache, cache),
+            daemon=True
+        ).start()
+    else:
+        llm_model = LLMModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
+        llm_model.load_model()
+        llm_model.run_model()
 
-    tokenizer_config = {"device": llm_model.device, "SPACE_TOKEN_CHAR": config.SPACE_TOKEN_CHAR}
-    threading.Thread(
-        target=handle_model_responses,
-        args=(response_queue, events_queue, tokenizer_config, cache, execution_cache),
-        daemon=True
-    ).start()
+        tokenizer_config = {"device": llm_model.device, "SPACE_TOKEN_CHAR": config.SPACE_TOKEN_CHAR}
+        threading.Thread(
+            target=handle_model_responses,
+            args=(response_queue, events_queue, tokenizer_config, cache, execution_cache),
+            daemon=True
+        ).start()
 
     ready_event.set()
 

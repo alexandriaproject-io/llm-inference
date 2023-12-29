@@ -125,3 +125,99 @@ def handle_model_responses(response_queue, events_queue, tokenizer_config, cache
             })
             # Remove execution cache as we finish the execution here
             del execution_cache[execution_id]
+
+
+def handle_cpp_model_responses(response_queue, events_queue, execution_cache, cache):
+    while True:
+        event = response_queue.get()
+        if event is None:  # Use None as a signal to stop the thread
+            break
+
+        execution_id = event["execution_id"]
+        execution = execution_cache[execution_id]
+        cache_id = execution["cache_id"]
+
+        # handle start events
+        if event["type"] == LLMInternalEventTypes.START:
+            events_queue.put({
+                "events_type": LLMEventTypes.START,
+                "execution_id": execution_id,
+                "events": [{
+                    "request_id": request_id,
+                    "type": LLMEventTypes.START
+                } for request_id in execution["request_ids"]]
+            })
+
+            # handle initialization events
+        elif event["type"] == LLMInternalEventTypes.INITIALIZED:
+            events_queue.put({
+                "events_type": LLMEventTypes.INITIALIZED,
+                "execution_id": execution_id,
+                "events": [{
+                    "request_id": request_id,
+                    "type": LLMEventTypes.INITIALIZED,
+                    "tokens": token
+                } for token, request_id in zip(event["tokens"].data, execution["request_ids"])]
+            })
+        elif event["type"] == LLMInternalEventTypes.PROGRESS:
+            progress_events = []
+            for token, request_id in zip(event["tokens"], execution["request_ids"]):
+                progress_events.append({
+                    "request_id": request_id,
+                    "type": LLMEventTypes.PROGRESS,
+                    "token": token,
+                })
+
+            events_queue.put({
+                "events_type": LLMEventTypes.PROGRESS,
+                "execution_id": execution_id,
+                "events": progress_events
+            })
+        elif event["type"] == LLMInternalEventTypes.COMPLETE:
+            complete_events = []
+            updated_prompts = []
+            for sequence, request_id in zip(event["sequences"], execution["request_ids"]):
+                updated_prompts.append(''.join(sequence))
+                complete_events.append({
+                    "type": LLMEventTypes.COMPLETE,
+                    "request_id": request_id,
+                    "tokens": ''.join(sequence),
+                    "new_tokens": len(sequence) - 1,
+                    "execution_time": event["execution_time"],
+                    "is_eos": sequence[-1] == "</s>"
+                })
+
+            events_queue.put({
+                "events_type": LLMEventTypes.COMPLETE,
+                "execution_id": execution_id,
+                "events": complete_events,
+                "execution_time": event["execution_time"],
+                "is_eos_all": (is_eos_all := all(e["is_eos"] for e in complete_events))
+            })
+
+            # Handle caching or clearing of cache for this execution
+            if is_eos_all:
+                for cache_dict in (cache):
+                    cache_dict.pop(cache_id, None)
+            else:
+                cache[cache_id] = {
+                    "tokens": updated_prompts,
+                    "masks": execution["masks"],
+                    "values": None,
+                    "config": execution["config"]
+                }
+            # Remove execution cache as we finish the execution here
+            del execution_cache[execution_id]
+
+        elif event["type"] == LLMInternalEventTypes.ERROR:
+            events_queue.put({
+                "events_type": LLMEventTypes.ERROR,
+                "execution_id": execution_id,
+                "error": event["error"],
+                "events": [
+                    {"request_id": request_id, "type": LLMEventTypes.ERROR, "error": event["error"]}
+                    for request_id in execution["request_ids"]
+                ]
+            })
+            # Remove execution cache as we finish the execution here
+            del execution_cache[execution_id]
