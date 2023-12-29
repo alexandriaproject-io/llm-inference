@@ -157,7 +157,7 @@ def handle_cpp_model_responses(response_queue, events_queue, execution_cache, ca
                     "request_id": request_id,
                     "type": LLMEventTypes.INITIALIZED,
                     "tokens": token
-                } for token, request_id in zip(event["tokens"].data, execution["request_ids"])]
+                } for token, request_id in zip(event["tokens"], execution["request_ids"])]
             })
         elif event["type"] == LLMInternalEventTypes.PROGRESS:
             progress_events = []
@@ -182,7 +182,7 @@ def handle_cpp_model_responses(response_queue, events_queue, execution_cache, ca
                     "type": LLMEventTypes.COMPLETE,
                     "request_id": request_id,
                     "tokens": ''.join(sequence),
-                    "new_tokens": len(sequence) - 1,
+                    "new_tokens": len(sequence) - 2,
                     "execution_time": event["execution_time"],
                     "is_eos": sequence[-1] == "</s>"
                 })
