@@ -41,7 +41,36 @@ class LLMCPPModel:
         log.warn("'num_beams' and 'do_sample' are not supported. num_beams is always 1 and do_sample always true")
         responses = [[prompt] for prompt in prompts]
         if (len(prompts) > 1):
-            log.warn("llama_ccp doesnt support batching, this will be slow")
+            log.warn("llama_ccp doesnt support batching. The prompts will be handled one by one, this will be slow")
+            if streamer:
+                log.warn("Not Yet")
+            else:
+                for index, prompt in enumerate(prompts):
+                    if not prompt.endswith('</s>'):
+                        output = self.model.create_completion(
+                            prompt,
+                            max_tokens=int(config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"])),
+                            temperature=float(config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"])),
+                            top_p=float(config.get("top_p", self.config["MODEL_DEFAULT_TOP_P"])),
+                            top_k=int(config.get("top_k", self.config["MODEL_DEFAULT_TOP_K"])),
+                            repeat_penalty=float(
+                                config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"])),
+                            presence_penalty=float(
+                                config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"])),
+                        )
+
+                        responses[index].append(output["choices"][0]["text"])
+                        # Nasty work around to mimic the GPU model behaviour without going too technical
+                        new_tokens = output["usage"]["completion_tokens"]
+                        if output["choices"][0]['finish_reason'] == "stop":
+                            responses[index].append('</s>')
+                            pad_tokens = new_tokens - 1
+                        else:
+                            pad_tokens = new_tokens
+
+                        if pad_tokens > 0:
+                            for i in range(pad_tokens):
+                                responses[index].append('')
 
         else:
             if streamer:

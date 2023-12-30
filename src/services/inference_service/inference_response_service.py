@@ -177,14 +177,15 @@ def handle_cpp_model_responses(response_queue, events_queue, execution_cache, ca
             complete_events = []
             updated_prompts = []
             for sequence, request_id in zip(event["sequences"], execution["request_ids"]):
-                updated_prompts.append(''.join(sequence))
+                merged_sequence = ''.join(sequence)
+                updated_prompts.append(merged_sequence)
                 complete_events.append({
                     "type": LLMEventTypes.COMPLETE,
                     "request_id": request_id,
                     "tokens": ''.join(sequence),
                     "new_tokens": len(sequence) - 2,
                     "execution_time": event["execution_time"],
-                    "is_eos": sequence[-1] == "</s>"
+                    "is_eos": merged_sequence.endswith("</s>")
                 })
 
             events_queue.put({
