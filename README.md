@@ -42,6 +42,18 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
 - [Cuda 11.8 ( for GTX 10xx series)](docs/llm-linux-cuda-11.8.md)
 - [CPU - slow but reliable](docs/llm-linux-cpu.md)
 
+**Use llama-cpp-python package**
+- **Windows**: [LLAMA-CPP-Windows - low-end hardware](docs/llm-llama-cpp-windows.md)
+- **Linux**: [LLAMA-CPP-Linux - low-end hardware](docs/llm-llama-cpp-linux.md)
+
+`Note: You will need to aquire GGUF model.`
+
+- For example:
+    - **docs:**
+      [TheBloke/Mistral-7B-Instruct-v0.2-GGUF](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)
+    - **files:**
+      [TheBloke/Mistral-7B-Instruct-v0.2-GGUF/tree/main](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/tree/main)
+
 ## Run with docker
 
 - **CPU Mode**
@@ -129,8 +141,10 @@ You can find the example file here [.env.example](.env.example)
 | **MODEL_DEFAULT_REPETITION_PENALTY** | 1                 | Any Float  | Parameter used to discourage the model from repeating the same words or phrases, increasing the diversity of the generated text.                                                  |
 | **MODEL_DEFAULT_LENGTH_PENALTY**     | 1                 | Any Float  | Parameter that adjusts the model's preference for longer or shorter sequences, with values greater than 1 favoring longer sequences and values less than 1 favoring shorter ones. |
 
-## UI resources
+## resources
 
+https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF
+https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2
 https://github.com/coreui/coreui-free-react-admin-template
  
 

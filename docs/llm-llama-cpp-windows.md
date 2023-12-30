@@ -1,27 +1,24 @@
-## Setup Cuda SDK 12.1 or later ( GTX 20xx, 30xx, 40xx )
-This is a short guide to setup llm-inference project to run on your Windows machine using latest CUDA drivers. \
-This setup is viable if you have **Nvidia GTX 20xx series or later**.
+## Setup llm-inference using LLAMA-CPP 
+This is a short guide to setup llm-inference project to run on your Linux machine using [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) package.
+
+## Setup llm-inference using CPU on windows
+This is a short guide to setup llm-inference project to run on your Windows machine using CPU.
 
 - **Install Windows build tools from:** \
 https://visualstudio.microsoft.com/visual-cpp-build-tools/ \
 You are looking for **Desktop Development with C++**
-
-
-- **Setup CUDA** \
-Navigate to: https://developer.nvidia.com/cuda-downloads?target_os=Windows&target_arch=x86_64 \
-Select your Windows version and installation method then install.
-
  
-- **Create Python Virtual Environment:**\
-`python -m venv venv`
+
+- **Create Python Virtual Environment:**
+  - `python -m venv venv`
 
 
-- **Activate the virtual environment:** \
- `.\venv\Scripts\activate`
+- **Activate the virtual environment:** 
+  - `.\venv\Scripts\activate`
 
 
-- **Install pytorch with cuda support**: \
-  - `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121`
+- **Install pytorch with cpu support**: 
+  - `pip3 install torch torchvision torchaudio`
     - source: https://pytorch.org/get-started/locally/ 
    
 
@@ -38,8 +35,9 @@ Select your Windows version and installation method then install.
   - `pip3 install git+https://github.com/Keith-Hon/bitsandbytes-windows.git`
 
 
-- Create `.env` file based on `.env.example` or `env-samples/env.cuda.example`
+- Create `.env` file based on `.env.example` or `env-samples/env.llamacpp.example`
   - Change the Model path and config then Run the server:
     - `python main.py --multiprocess`
 
 [Back to main doc](../README.md)
+
