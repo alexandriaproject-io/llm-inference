@@ -199,7 +199,6 @@ const RestApiBatchDashboard = () => {
         <GenerationConfig
           config={generationConfig}
           onChange={(newConfig) => setGenerationConfig(newConfig)}
-          showStream
         />
         <CRow>
           {prompts.map(({ prompt, requestId, id }, index) => (
