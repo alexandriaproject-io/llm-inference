@@ -16,7 +16,6 @@ def start_model_generator(execution_queue, events_queue, ready_event):
     cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
     execution_cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
 
-    print(config.USE_LLAMA_CPP)
     if config.USE_LLAMA_CPP:
         llm_model = LLMCPPModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
         llm_model.load_model()
