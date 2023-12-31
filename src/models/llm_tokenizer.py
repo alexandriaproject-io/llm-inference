@@ -4,7 +4,7 @@ from transformers import AutoTokenizer
 
 class LLMTokenizer:
     def __init__(self, model_path, config):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path, padding_size="left")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path, padding_side="left")
         self.tokenizer.pad_token = self.tokenizer.pad_token or self.tokenizer.bos_token
         self.tokenizer.add_special_tokens({"pad_token": self.tokenizer.pad_token})
 

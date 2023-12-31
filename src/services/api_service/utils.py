@@ -38,15 +38,18 @@ class ResponseHandler:
 
             if queue_event["events_type"] == LLMEventTypes.INITIALIZED:
                 for event in queue_event["events"]:
-                    event['text'] = self.tokenizer.decode_output(event['tokens'])
+                    if event:
+                        event['text'] = self.tokenizer.decode_output(event['tokens'])
 
             elif queue_event["events_type"] == LLMEventTypes.PROGRESS:
                 for event in queue_event["events"]:
-                    event['text'] = self.tokenizer.decode_output(event['token'])
+                    if event:
+                        event['text'] = self.tokenizer.decode_output(event['token'])
 
             elif queue_event["events_type"] == LLMEventTypes.COMPLETE:
                 for event in queue_event["events"]:
-                    event['text'] = self.tokenizer.decode_output(event['tokens'])
+                    if event:
+                        event['text'] = self.tokenizer.decode_output(event['tokens'])
 
             # Route the event to the appropriate execution queue if it exists
             if execution_id in self.execution_queues:
@@ -78,12 +81,16 @@ class ExecutionHandler:
             "config": execution_config,
             "use_stream": use_stream
         })
-        return listener
+        return listener, lambda: self.remove_listener(execution_id)
 
     def create_listener(self):
         response_events: ResponseHandler = self.app["response_events"]
         execution_id = uuid.uuid4()
         return response_events.register_execution(execution_id), execution_id
+
+    def remove_listener(self, execution_id):
+        response_events: ResponseHandler = self.app["response_events"]
+        response_events.unregister_execution(execution_id)
 
     async def send_to_execution(self, data):
         await self.app["execution_queue"].put(data)

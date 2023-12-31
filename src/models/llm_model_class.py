@@ -41,7 +41,7 @@ class LLMModel:
             self.model_type = torch.bfloat16 if self.isBF16Supported else torch.float16
 
     def load_tokenizer(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, padding_size="left")
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, padding_side="left")
         self.tokenizer.pad_token = self.tokenizer.pad_token or self.tokenizer.bos_token
         self.tokenizer.add_special_tokens({"pad_token": self.tokenizer.pad_token})
 

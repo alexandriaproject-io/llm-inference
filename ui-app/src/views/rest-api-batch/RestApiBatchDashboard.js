@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import {
-  CBadge,
   CButton,
   CCard,
   CCol,
@@ -17,6 +16,7 @@ import Timer from '../../components/Timer'
 import { v4 as uuidv4 } from 'uuid'
 import GenerationConfig from '../../components/GenerationConfig'
 import PromptResponse from '../../components/PromptResponse'
+import ResponseTimes from '../../components/ResponseTimes'
 
 const API_PATH = `${process.env.REACT_APP_BASE_URL || ''}/api/generate-batch`
 
@@ -64,6 +64,7 @@ const RestApiBatchDashboard = () => {
   const [isWaiting, setIsWaiting] = useState(false)
   const [isContinuePrompt, setIsContinuePrompt] = useState(false)
   const [generationConfig, setGenerationConfig] = useState({})
+  const [nonce, setNonce] = useState(0)
 
   useEffect(() => {
     if (autoContinue && isContinuePrompt && !isWaiting && !isStop && !isError) {
@@ -71,7 +72,7 @@ const RestApiBatchDashboard = () => {
     } else {
       setIsStop(false)
     }
-  }, [lastResponseTime])
+  }, [nonce])
 
   const sendPrompt = async () => {
     setIsWaiting(true)
@@ -113,7 +114,7 @@ const RestApiBatchDashboard = () => {
             }
             return {
               ...data,
-              response: (full.response += data.response),
+              response: (full.response += (data.prompt || '') + data.response),
             }
           }),
         )
@@ -123,6 +124,7 @@ const RestApiBatchDashboard = () => {
           setResponseTimes([...responseTimes, responseTime])
         }
         setLastResponseTime(responseTime)
+        setNonce(nonce + 1)
         const isEos = response.status === 200
         setIsContinuePrompt(!isEos)
         if (isEos) {
@@ -213,7 +215,11 @@ const RestApiBatchDashboard = () => {
                     onChange={(e) => updatePrompt(id, { requestId: e.target.value })}
                   />
                   {index > 1 && (
-                    <CButton color="danger" onClick={() => removePrompt(id)}>
+                    <CButton
+                      disabled={isContinuePrompt}
+                      color="danger"
+                      onClick={() => removePrompt(id)}
+                    >
                       <strong>Clear</strong>
                     </CButton>
                   )}
@@ -240,27 +246,7 @@ const RestApiBatchDashboard = () => {
           </div>
         )}
 
-        {responseTimes.length ? (
-          <CFormLabel htmlFor="exampleFormControlTextarea1" className="mt-3">
-            <strong>Response time history: </strong>
-          </CFormLabel>
-        ) : (
-          ''
-        )}
-        <div className="pb-3" style={{ overflow: 'auto', whiteSpace: 'nowrap' }}>
-          {responseTimes.length
-            ? responseTimes.map((time, i) => (
-                <CBadge
-                  key={`badge-${i}-${time}`}
-                  color="dark"
-                  shape="rounded-pill"
-                  className="me-2"
-                >
-                  {(time / 1000).toFixed(3)} s
-                </CBadge>
-              ))
-            : ''}
-        </div>
+        <ResponseTimes responseTimes={responseTimes} />
 
         <div className="mb-3 ">
           <CButton

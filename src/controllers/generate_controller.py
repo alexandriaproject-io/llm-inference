@@ -5,27 +5,7 @@ import time
 import asyncio
 from src.config.types import LLMEventTypes
 from logger import log
-
-
-def is_valid_config(generation_config):
-    if generation_config:
-        if not isinstance(generation_config, dict):
-            return False
-        for key, value in generation_config.items():
-            if key in ['num_beams', 'max_new_tokens', 'top_k'] and not isinstance(value, int):
-                return False
-            elif key in ['do_sample', 'stream'] and not isinstance(value, bool):
-                return False
-            elif key in ['temperature', 'top_p', 'repetition_penalty', 'length_penalty'] \
-                    and not (isinstance(value, float) or isinstance(value, int)):
-                return False
-    return True
-
-
-def is_valid_batch_item(batch):
-    request_id = batch.get("request_id", '')
-    prompt = batch.get("prompt", " ")
-    return request_id and isinstance(request_id, str) and isinstance(prompt, str)
+from src.controllers.controller_utils import is_valid_config, is_valid_batch_item
 
 
 @swagger_path('src/controllers/swagger/generate_one.yml')
@@ -56,7 +36,7 @@ async def generate_one(request):
         is_streaming = stream_response and (generation_config.get("num_beams", 1) == 1 if generation_config else True)
 
         start_time = time.perf_counter()
-        response_queue = await request.executions.execute_prompts(
+        response_queue, remove_queue = await request.executions.execute_prompts(
             [request_id],
             [prompt],
             generation_config,
@@ -96,7 +76,7 @@ async def generate_one(request):
                         else:
                             await response.write(event["text"].replace(initialization, '').encode('utf-8'))
                     break
-
+        remove_queue()
         diff = time.perf_counter() - start_time
         log.info(f"Generation of {counter} tokens was {diff} seconds at {counter / diff} t/s")
         await response.write_eof()
@@ -127,7 +107,7 @@ async def generate_batch(request):
             return web.Response(text="Duplicate request_ids", status=400)
 
         start_time = time.perf_counter()
-        response_queue = await request.executions.execute_prompts(
+        response_queue, remove_queue = await request.executions.execute_prompts(
             request_ids,
             request_prompts,
             generation_config,
@@ -153,7 +133,7 @@ async def generate_batch(request):
                 total_count = sum(result['new_tokens'] for result in results)
                 is_complete = events["is_eos_all"]
                 break
-
+        remove_queue()
         diff = time.perf_counter() - start_time
         log.info(f"Execution of {total_count} total tokens was {diff} seconds at {total_count / diff} t/s")
 

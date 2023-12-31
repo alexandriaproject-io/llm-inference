@@ -1,7 +1,8 @@
-import psutil
 from torch.multiprocessing import Process, Queue, Event
 from src.services.inference_service.inference_service import start_model_generator
 from src.services.api_service.api_service import start_server
+import transformers
+transformers.logging.set_verbosity_error()
 
 if __name__ == '__main__':
     try:

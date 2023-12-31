@@ -70,10 +70,9 @@ def handle_model_responses(response_queue, events_queue, tokenizer_config, cache
         # handle complete events
         elif event["type"] == LLMInternalEventTypes.COMPLETE:
             eos_state_complete = eos_cache_complete.get(cache_id, {})
-
             complete_events = []
             masks = []
-            total_new_tokens_count = 0
+
             for sequence, mask, request_id in zip(event["sequences"], execution["masks"], execution["request_ids"]):
                 att_tokens = 0
                 pad_tokens = sequence.size(0) - mask.size(0)
@@ -87,6 +86,7 @@ def handle_model_responses(response_queue, events_queue, tokenizer_config, cache
                     "request_id": request_id,
                     "tokens": sequence[new_mask == 1].to('cpu'),
                     "new_tokens": att_tokens,
+                    "execution_time": event["execution_time"],
                     "is_eos": eos_state_complete[request_id]
                 })
 
@@ -94,6 +94,7 @@ def handle_model_responses(response_queue, events_queue, tokenizer_config, cache
                 "events_type": LLMEventTypes.COMPLETE,
                 "execution_id": execution_id,
                 "events": complete_events,
+                "execution_time": event["execution_time"],
                 "is_eos_all": (is_eos_all := all(e["is_eos"] for e in complete_events))
             })
 
