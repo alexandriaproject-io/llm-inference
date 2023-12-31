@@ -15,7 +15,9 @@ Want to know how this service works?
 
 - [LLM Service **Architecture**](docs/architecture.md)
 - [LLM Service **Rest API** UML](docs/rest-api-uml.md)
+  - [Rest API integration docs](docs/rest-api-integrations.md)
 - [LLM Service **WebSocket** UML](docs/websocket-uml.md)
+  - [WebSocket integration docs](docs/ws-integrations.md)
 
 Want to use the service in your project:
 - [Rest API integration docs](docs/rest-api-integrations.md)

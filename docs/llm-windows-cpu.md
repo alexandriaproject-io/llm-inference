@@ -24,10 +24,6 @@ You are looking for **Desktop Development with C++**
   - llama-cpp-python guide: https://llama-cpp-python.readthedocs.io/en/latest/api-reference/
 
 
-- **Install transformers with cache support** 
-  - `pip3 install git+https://github.com/huggingface/transformers.git`
-
-
 - **Install Bitsandbytes** - windows compatible version 
   - `pip3 install git+https://github.com/Keith-Hon/bitsandbytes-windows.git`
 

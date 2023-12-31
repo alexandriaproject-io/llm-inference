@@ -30,10 +30,6 @@ Select your Windows version and installation method then install.
   - llama-cpp-python guide: https://llama-cpp-python.readthedocs.io/en/latest/api-reference/
 
 
-- **Install transformers with cache support** 
-  - `pip3 install git+https://github.com/huggingface/transformers.git`
-
-
 - **Install Bitsandbytes** - windows compatible version 
   - `pip3 install git+https://github.com/Keith-Hon/bitsandbytes-windows.git`
 

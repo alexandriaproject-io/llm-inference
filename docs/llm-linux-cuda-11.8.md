@@ -24,11 +24,6 @@ Select your Linux version and installation method follow the installation instru
   - `pip3 install -r requirements.txt`
   - llama-cpp-python guide: https://llama-cpp-python.readthedocs.io/en/latest/api-reference/
 
-
-- **Install transformers with cache support** 
-  - `pip3 install git+https://github.com/huggingface/transformers.git`
-
-
 - **Install Bitsandbytes**
   - `pip3 install bitsandbytes`
 

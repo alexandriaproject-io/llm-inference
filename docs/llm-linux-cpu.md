@@ -19,10 +19,6 @@ This is a short guide to setup llm-inference project to run on your Linux machin
   - llama-cpp-python guide: https://llama-cpp-python.readthedocs.io/en/latest/api-reference/
 
 
-- **Install transformers with cache support** 
-  - `pip3 install git+https://github.com/huggingface/transformers.git`
-
-
 - **Install Bitsandbytes**
   - `pip3 install bitsandbytes`
 
