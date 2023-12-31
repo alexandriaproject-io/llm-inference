@@ -17,6 +17,10 @@ Want to know how this service works?
 - [LLM Service **Rest API** UML](docs/rest-api-uml.md)
 - [LLM Service **WebSocket** UML](docs/websocket-uml.md)
 
+Want to use the service in your project:
+- [Rest API integration docs](docs/rest-api-integrations.md)
+- [WebSocket integration docs](docs/ws-integrations.md)
+
 ## Run with locally
 
 Due to the variety of setups and the fact that each one requires different versions of PyTorch. \
