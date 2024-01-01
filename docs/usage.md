@@ -31,5 +31,6 @@ A guide we found for Windows: https://github.com/mpwang/llama-cpp-windows-guide
 | **Float4 / 4Bit**  | 3GB | 6GB       | ~ 30 tok / sec          | Linux only |
 
 - `Note: 8/4 Bit quanitization requires GPU to run the model compression install Cuda version to run quanitized on CPU`
+- `Note: using bits and bytes for windows only works with cudal 11.8 atm`
 
 [Back to main doc](../README.md)
