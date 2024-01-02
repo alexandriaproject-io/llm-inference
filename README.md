@@ -64,7 +64,7 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
     - **files:**
       [TheBloke/Mistral-7B-Instruct-v0.2-GGUF/tree/main](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/tree/main)
 
-## Run with docker
+## Run with docker (** NOT IMPLEMENTED **)
 
 - **CPU Mode**
     - CPU - slow but reliable
