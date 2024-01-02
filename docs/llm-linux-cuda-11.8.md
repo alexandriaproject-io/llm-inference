@@ -2,9 +2,12 @@
 This is a short guide to setup llm-inference project to run on your Linux machine using legacy CUDA drivers. \
 This setup is viable if you have **Nvidia GTX 10xx** series.
 
+>`NOTE: Python 3.12 breaks torch instllation. Please use Python 3.10`
+
 - **Setup CUDA** \
 Navigate to: https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Linux&target_arch=x86_64 \
 Select your Linux version and installation method follow the installation instructions.
+
 
  
 - **Create Python Virtual Environment:**

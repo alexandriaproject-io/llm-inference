@@ -19,6 +19,7 @@ def set_routes(app):
 def set_ui(app):
     app.add_routes([
         # Static UI hosting
+        web.get('/', index),
         web.get('/ui', index),
         web.get('/ui/{tail:[^\.]*}', index),
         web.static('/ui/', path='ui-app/build', name='static'),

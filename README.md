@@ -15,11 +15,12 @@ Want to know how this service works?
 
 - [LLM Service **Architecture**](docs/architecture.md)
 - [LLM Service **Rest API** UML](docs/rest-api-uml.md)
-  - [Rest API integration docs](docs/rest-api-integrations.md)
+    - [Rest API integration docs](docs/rest-api-integrations.md)
 - [LLM Service **WebSocket** UML](docs/websocket-uml.md)
-  - [WebSocket integration docs](docs/ws-integrations.md)
+    - [WebSocket integration docs](docs/ws-integrations.md)
 
 Want to use the service in your project:
+
 - [Rest API integration docs](docs/rest-api-integrations.md)
 - [WebSocket integration docs](docs/ws-integrations.md)
 
@@ -27,6 +28,8 @@ Want to use the service in your project:
 
 Due to the variety of setups and the fact that each one requires different versions of PyTorch. \
 Before we head out here is a list of system Memory and GPU requirements.
+
+> `NOTE: Python 3.12 breaks torch instllation. Please use Python 3.10`
 
 - [Resource requirements can be found here](docs/usage.md)
 
@@ -49,6 +52,7 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
 - [CPU - slow but reliable](docs/llm-linux-cpu.md)
 
 **Use llama-cpp-python package**
+
 - **Windows**: [LLAMA-CPP-Windows - low-end hardware](docs/llm-llama-cpp-windows.md)
 - **Linux**: [LLAMA-CPP-Linux - low-end hardware](docs/llm-llama-cpp-linux.md)
 

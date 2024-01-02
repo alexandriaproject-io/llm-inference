@@ -1,6 +1,8 @@
 ## Setup llm-inference using CPU on windows
 This is a short guide to setup llm-inference project to run on your Windows machine using CPU.
 
+>`NOTE: Python 3.12 breaks torch instllation. Please use Python 3.10`
+
 - **Install Windows build tools from:** \
 https://visualstudio.microsoft.com/visual-cpp-build-tools/ \
 You are looking for **Desktop Development with C++**

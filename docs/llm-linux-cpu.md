@@ -1,6 +1,8 @@
 ## Setup llm-inference using CPU on windows
 This is a short guide to setup llm-inference project to run on your Linux machine using CPU.
 
+>`NOTE: Python 3.12 breaks torch instllation. Please use Python 3.10`
+
 - **Create Python Virtual Environment:**
   - `python -m venv venv`
 

@@ -3,6 +3,7 @@ import aiohttp
 import aiohttp_swagger
 import asyncio
 from aiohttp import web
+from logger import log
 from src.config import config
 from src.routes.routes import set_routes, set_cors, set_ui
 from src.models.huggingface.llm_tokenizer import LLMTokenizer
@@ -23,13 +24,19 @@ def start_server(execution_queue, events_queue):
         app["tokenizer"] = LLMTokenizer(config.MODEL_PATH, {"SPACE_TOKEN_CHAR": config.SPACE_TOKEN_CHAR})
     else:
         app["tokenizer"] = LLMCPPTokenizer()
+
     async def on_startup(t_app):
         t_app["execution_queue"] = AsyncQueueHandler(execution_queue)
         t_app["events_queue"] = AsyncQueueHandler(events_queue)
         t_app["response_events"] = ResponseHandler(t_app["events_queue"], t_app["tokenizer"])
         asyncio.create_task(t_app["response_events"].listen())
 
+    async def on_ready(t_app):
+        log.info(f"Swagger is available at http://{config.SERVER_HOST}:{config.SERVER_PORT}/swagger")
+        log.info(f"UI is available at      http://{config.SERVER_HOST}:{config.SERVER_PORT}/ui")
+
     app.on_startup.append(on_startup)
+    app.on_startup.append(on_ready)
 
     set_routes(app)
     aiohttp_swagger.setup_swagger(

@@ -1,7 +1,9 @@
 ## Setup llm-inference using LLAMA-CPP 
 This is a short guide to setup llm-inference project to run on your Linux machine using [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) package.
 
-## Setup llm-inference using CPU on windows
+>`NOTE: Python 3.12 breaks torch instllation. Please use Python 3.10`
+
+### Setup llm-inference using CPU on windows
 This is a short guide to setup llm-inference project to run on your Windows machine using CPU.
 
 - **Install Windows build tools from:** \
