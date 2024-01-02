@@ -1,3 +1,6 @@
+## Setup llm-inference using LLAMA-CPP 
+This is a short guide to setup llm-inference project to run on your Linux machine using [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) package.
+
 ## Setup llm-inference using CPU on windows
 This is a short guide to setup llm-inference project to run on your Windows machine using CPU.
 
@@ -28,8 +31,9 @@ You are looking for **Desktop Development with C++**
   - `pip3 install git+https://github.com/Keith-Hon/bitsandbytes-windows.git`
 
 
-- Create `.env` file based on `.env.example` or `env-samples/env.cpu.example`
+- Create `.env` file based on `.env.example` or `env-samples/env.llamacpp.example`
   - Change the Model path and config then Run the server:
     - `python main.py --multiprocess`
 
 [Back to main doc](../README.md)
+

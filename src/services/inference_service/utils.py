@@ -1,6 +1,6 @@
 import enum
 from logger import log
-from src.models.llm_model_class import BaseStreamer
+from src.models.huggingface.llm_model_class import BaseStreamer
 
 class LLMInternalEventTypes(enum.Enum):
     START = 1

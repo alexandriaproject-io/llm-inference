@@ -12,6 +12,12 @@ MAX_CACHE_TTL = int(os.getenv("MAX_CACHE_TTL", "3600"))
 
 # Model inference configuration
 MODEL_PATH = os.getenv("MODEL_PATH")
+
+USE_LLAMA_CPP = os.getenv("USE_LLAMA_CPP", "false").lower() == 'true'
+LLAMA_CPP_MAX_CONTEXT = int(os.getenv("LLAMA_CPP_MAX_CONTEXT", "2048"))
+LLAMA_CPP_BATCH_TOKENS = int(os.getenv("LLAMA_CPP_BATCH_TOKENS", "2048"))
+LLAMA_RAM_CACHE_MB = int(os.getenv("LLAMA_RAM_CACHE_MB", "512"))
+
 ENABLE_CUDA = os.getenv("ENABLE_CUDA", "true").lower() == 'true'
 TARGET_GPU_INDEX = int(os.getenv("TARGET_GPU_INDEX", "0"))
 LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "False").lower() == 'true'
@@ -26,8 +32,6 @@ MODEL_DEFAULT_DO_SAMPLE = os.getenv("MODEL_DEFAULT_DO_SAMPLE", "True").lower() =
 MODEL_DEFAULT_TEMPERATURE = float(os.getenv("MODEL_DEFAULT_TEMPERATURE", "1"))
 MODEL_DEFAULT_TOP_P = float(os.getenv("MODEL_DEFAULT_TOP_P", "1"))
 MODEL_DEFAULT_TOP_K = int(os.getenv("MODEL_DEFAULT_TOP_K", "50"))
-
-
 
 # Token generation penalties and limitations
 MODEL_DEFAULT_MAX_NEW_TOKENS = int(os.getenv("MODEL_DEFAULT_MAX_NEW_TOKENS", "4096"))

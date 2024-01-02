@@ -1,5 +1,5 @@
-## Setup llm-inference using CPU on windows
-This is a short guide to setup llm-inference project to run on your Linux machine using CPU.
+## Setup llm-inference using LLAMA-CPP 
+This is a short guide to setup llm-inference project to run on your Linux machine using [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) package.
 
 - **Create Python Virtual Environment:**
   - `python -m venv venv`
@@ -23,7 +23,7 @@ This is a short guide to setup llm-inference project to run on your Linux machin
   - `pip3 install bitsandbytes`
 
 
-- Create `.env` file based on `.env.example` or `env-samples/env.cpu.example`
+- Create `.env` file based on `.env.example` or `env-samples/env.llamacpp.example`
   - Change the Model path and config then Run the server:
     - `python3 main.py --multiprocess`
 

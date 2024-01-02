@@ -5,7 +5,8 @@ import asyncio
 from aiohttp import web
 from src.config import config
 from src.routes.routes import set_routes, set_cors, set_ui
-from src.models.llm_tokenizer import LLMTokenizer
+from src.models.huggingface.llm_tokenizer import LLMTokenizer
+from src.models.llama_cpp.LLMCPP_tokenizer import LLMCPPTokenizer
 from src.services.api_service.utils import ResponseHandler, AsyncQueueHandler, ExecutionHandler
 
 
@@ -18,8 +19,10 @@ async def extend_request(request, handler):
 def start_server(execution_queue, events_queue):
     app = web.Application(middlewares=[extend_request])
 
-    app["tokenizer"] = LLMTokenizer(config.MODEL_PATH, {"SPACE_TOKEN_CHAR": config.SPACE_TOKEN_CHAR})
-
+    if not config.USE_LLAMA_CPP:
+        app["tokenizer"] = LLMTokenizer(config.MODEL_PATH, {"SPACE_TOKEN_CHAR": config.SPACE_TOKEN_CHAR})
+    else:
+        app["tokenizer"] = LLMCPPTokenizer()
     async def on_startup(t_app):
         t_app["execution_queue"] = AsyncQueueHandler(execution_queue)
         t_app["events_queue"] = AsyncQueueHandler(events_queue)
