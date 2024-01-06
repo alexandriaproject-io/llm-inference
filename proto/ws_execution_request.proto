@@ -1,0 +1,57 @@
+syntax = "proto3";
+package WsRequest;
+import "common.proto";
+
+// Response Event types
+enum ExecutionEventType {
+  ACCEPTED = 0;     // Request passed validation and is now queued for execution
+  STARTED = 1;      // Request was picked up by the model and is now being loaded
+  INITIALIZED = 2;  // Request was loaded into the model and is now generating new tokens
+  PROGRESS = 3;     //If streaming is enabled, it will contain the next generated token.
+  COMPLETE = 4;     //Summary event when generation is complete.
+  ERROR = 5;        //Error event during text generation.
+}
+
+// Definition for batch generation request
+message WsGenerationRequest {
+  repeated common.SinglePrompt prompts = 1;       // Batched prompts to execute the generation on
+  bool only_new_tokens = 2;                       // Only return generated tokens or return prompt + generated tokens
+  bool stream_response = 3;                       // Stream generated tokens one by one
+  common.GenerationConfig generation_config = 4;  // Generation configuration for this batch
+}
+
+message WsGenerationEvent {
+  string request_id = 1;        // Id of the request
+  ExecutionEventType type = 2;  // Type of the event
+  string text = 3;              // Optional: Generated response text ( relevant for INITIALIZED and PROGRESS events )
+}
+
+message WsGenerationCompletionEvent {
+  string request_id = 1;          // Id of the request
+  ExecutionEventType type = 2;    // ExecutionEventType.COMPLETED
+  string text = 3;                // Generated response text
+  bool is_eos = 4;                // Is End of Sentence - did the model finish execution or not
+  int32 new_tokens_count = 5;     // Count of newly generated tokens
+  float execution_time = 6;       // Time it took the model to generate the response
+}
+
+message WsGenerationErrorEvent {
+  string request_id = 1;        // Id of the request
+  ExecutionEventType type = 2;  // ExecutionEventType.COMPLETED
+  string error = 3;             // Error message
+}
+
+// Wrapper message for a single event
+message EventWrapper {
+  oneof event {
+    WsGenerationEvent generation_event = 1;
+    WsGenerationCompletionEvent completion_event = 2;
+    WsGenerationErrorEvent error_event = 3;
+  }
+}
+
+// Modified WsGenerationResponse to hold multiple EventWrapper messages
+message WsGenerationResponse {
+  repeated EventWrapper events = 1;
+}
+

@@ -1,0 +1,20 @@
+syntax = "proto3";
+package ApiRequest;
+import "common.proto";
+
+
+// Definition for single prompt request
+message ApiSinglePromptRequest {
+  string request_id = 1;                          // Id to identify the request
+  string prompt = 2;                              // Request prompt
+  bool only_new_tokens = 3;                       // Only return generated tokens or return prompt + generated tokens
+  bool stream_response = 4;                       // Stream generated tokens one by one
+  common.GenerationConfig generation_config = 5;  // Generation configuration for this batch
+}
+
+// Definition for batch generation request
+message ApiBatchGenerationRequest {
+  repeated common.SinglePrompt prompts = 1;       // Batched prompts to execute the generation on
+  bool only_new_tokens = 2;                       // Only return generated tokens or return prompt + generated tokens
+  common.GenerationConfig generation_config = 4;  // Generation configuration for this batch
+}
