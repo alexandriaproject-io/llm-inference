@@ -1,6 +1,4 @@
 syntax = "proto3";
-package WsRequest;
-import "common.proto";
 
 // Response Event types
 enum ExecutionEventType {
@@ -12,13 +10,7 @@ enum ExecutionEventType {
   ERROR = 5;        //Error event during text generation.
 }
 
-// Definition for batch generation request
-message WsGenerationRequest {
-  repeated common.SinglePrompt prompts = 1;       // Batched prompts to execute the generation on
-  bool only_new_tokens = 2;                       // Only return generated tokens or return prompt + generated tokens
-  bool stream_response = 3;                       // Stream generated tokens one by one
-  common.GenerationConfig generation_config = 4;  // Generation configuration for this batch
-}
+
 
 message WsGenerationEvent {
   string request_id = 1;        // Id of the request
@@ -50,8 +42,5 @@ message EventWrapper {
   }
 }
 
-// Modified WsGenerationResponse to hold multiple EventWrapper messages
-message WsGenerationResponse {
-  repeated EventWrapper events = 1;
-}
+
 

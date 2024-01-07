@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-package common;
-
 // Sub-message used in both single and batch requests
 message SinglePrompt {
   string request_id = 1;  // Id to identify the request
