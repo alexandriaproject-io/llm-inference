@@ -1,0 +1,82 @@
+{
+  "namespace": "ApiInferenceRequest",
+  "type": "record",
+  "name": "ApiSinglePromptRequest",
+  "doc": "Definition for single prompt request",
+  "fields": [
+    {
+      "name": "request_id",
+      "type": "string",
+      "doc": "Id to identify the request"
+    },
+    {
+      "name": "prompt",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Request prompt"
+    },
+    {
+      "name": "stream_response",
+      "type": [
+        "null",
+        "boolean"
+      ],
+      "default": null,
+      "doc": "Stream generated tokens one by one"
+    },
+    {
+      "name": "only_new_tokens",
+      "type": [
+        "null",
+        "boolean"
+      ],
+      "default": null,
+      "doc": "Only return generated tokens or return prompt + generated tokens"
+    },
+    {
+      "name": "generation_config",
+      "type": [
+        "null",
+        "inference.common.GenerationConfig"
+      ],
+      "default": null
+    }
+  ]
+}
+
+{
+  "namespace": "ApiInferenceRequest",
+  "type": "record",
+  "name": "ApiBatchPromptRequest",
+  "doc": "Definition for batch generation request",
+  "fields": [
+    {
+      "name": "prompts",
+      "type": {
+        "type": "array",
+        "items": "inference.common.SinglePrompt"
+      }
+    },
+    {
+      "name": "only_new_tokens",
+      "type": [
+        "null",
+        "boolean"
+      ],
+      "default": null,
+      "doc": "Only return generated tokens or return prompt + generated tokens"
+    },
+    {
+      "name": "generation_config",
+      "type": [
+        "null",
+        "inference.common.GenerationConfig"
+      ],
+      "default": null
+    }
+  ]
+}
+

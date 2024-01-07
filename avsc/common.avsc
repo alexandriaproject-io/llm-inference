@@ -1,0 +1,118 @@
+{
+  "namespace": "inference.common",
+  "type": "record",
+  "name": "SinglePrompt",
+  "doc": "Sub-message used in both single and batch requests",
+  "fields": [
+    {
+      "name": "request_id",
+      "type": "string",
+      "doc": "Id to identify the request"
+    },
+    {
+      "name": "prompt",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Request prompt text"
+    }
+  ]
+}
+
+{
+  "namespace": "inference.common",
+  "type": "record",
+  "name": "GenerationConfig",
+  "fields": [
+    {
+      "name": "num_beams",
+      "type": [
+        "null",
+        "int"
+      ],
+      "default": null,
+      "doc": "Number of beams for beam search. More beams increase diversity of results, but slower generation."
+    },
+    {
+      "name": "do_sample",
+      "type": [
+        "null",
+        "boolean"
+      ],
+      "default": null,
+      "doc": "Whether to use sampling; set to true to have more diverse results, false for deterministic output."
+    },
+    {
+      "name": "temperature",
+      "type": [
+        "null",
+        "float"
+      ],
+      "default": null,
+      "doc": "Controls randomness: Lower closer to 0 means less random, higher means more random. Requires do_sample:true"
+    },
+    {
+      "name": "top_p",
+      "type": [
+        "null",
+        "float"
+      ],
+      "default": null,
+      "doc": "Nucleus sampling: higher means more diversity, lower means closer to greedy decoding."
+    },
+    {
+      "name": "top_k",
+      "type": [
+        "null",
+        "int"
+      ],
+      "default": null,
+      "doc": "Top-k sampling: the number of highest probability vocabulary tokens to keep for top-k-filtering."
+    },
+    {
+      "name": "max_new_tokens",
+      "type": [
+        "null",
+        "int"
+      ],
+      "default": null,
+      "doc": "The maximum number of new tokens to generate."
+    },
+    {
+      "name": "repetition_penalty",
+      "type": [
+        "null",
+        "float"
+      ],
+      "default": null,
+      "doc": "Penalty for repetition: >1 discourages repetition, <1 encourages it."
+    },
+    {
+      "name": "length_penalty",
+      "type": [
+        "null",
+        "float"
+      ],
+      "default": null,
+      "doc": "Controls length of generated text. Values >1 encourage longer sequences, <1 shorter."
+    }
+  ],
+  "doc": "Generation configuration used in inference requests"
+}
+
+{
+  "namespace": "inference.common",
+  "type": "enum",
+  "name": "ExecutionEventType",
+  "symbols": [
+    "ACCEPTED",
+    "STARTED",
+    "INITIALIZED",
+    "PROGRESS",
+    "COMPLETE",
+    "ERROR"
+  ],
+  "doc": "Event type one of ['ACCEPTED', 'STARTED', 'INITIALIZED', 'PROGRESS', 'COMPLETE', 'ERROR']"
+}

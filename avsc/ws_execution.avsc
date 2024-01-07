@@ -1,0 +1,253 @@
+{
+  "namespace": "inference.websocket",
+  "type": "record",
+  "name": "WsInferenceRequest",
+  "fields": [
+    {
+      "name": "prompts",
+      "type": {
+        "type": "array",
+        "items": "inference.common.SinglePrompt"
+      }
+    },
+    {
+      "name": "stream_response",
+      "type": [
+        "null",
+        "boolean"
+      ],
+      "default": null,
+      "doc": "Stream generated tokens one by one"
+    },
+    {
+      "name": "only_new_tokens",
+      "type": [
+        "null",
+        "boolean"
+      ],
+      "default": null,
+      "doc": "Only return generated tokens or return prompt + generated tokens"
+    },
+    {
+      "name": "generation_config",
+      "type": [
+        "null",
+        "inference.common.GenerationConfig"
+      ],
+      "default": null
+    }
+  ]
+}
+
+
+{
+  "namespace": "inference.websocket",
+  "type": "record",
+  "name": "WsInferenceAcceptedEvent",
+  "fields": [
+    {
+      "name": "request_id",
+      "type": "string",
+      "doc": "Id to identify the request"
+    },
+    {
+      "name": "type",
+      "type": "inference.common.ExecutionEventType",
+      "default": "ACCEPTED",
+      "doc": "ExecutionEventType.ACCEPTED"
+    },
+  ]
+}
+
+{
+  "namespace": "inference.websocket",
+  "type": "record",
+  "name": "WsInferenceStartedEvent",
+  "fields": [
+    {
+      "name": "request_id",
+      "type": "string",
+      "doc": "Id to identify the request"
+    },
+    {
+      "name": "type",
+      "type": "inference.common.ExecutionEventType",
+      "default": "STARTED",
+      "doc": "ExecutionEventType.STARTED"
+    },
+  ]
+}
+
+
+{
+  "namespace": "inference.websocket",
+  "type": "record",
+  "name": "WsInferenceInitializedEvent",
+  "fields": [
+    {
+      "name": "request_id",
+      "type": "string",
+      "doc": "Id to identify the request"
+    },
+    {
+      "name": "type",
+      "type": "inference.common.ExecutionEventType",
+      "default": "INITIALIZED",
+      "doc": "ExecutionEventType.INITIALIZED"
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "doc": "Initial prompt if only_new_tokens is false else ''"
+    }
+  ]
+}
+
+
+{
+  "namespace": "inference.websocket",
+  "type": "record",
+  "name": "WsInferenceProgressEvent",
+  "fields": [
+    {
+      "name": "request_id",
+      "type": "string",
+      "doc": "Id to identify the request"
+    },
+    {
+      "name": "type",
+      "type": "inference.common.ExecutionEventType",
+      "default": "PROGRESS",
+      "doc": "ExecutionEventType.PROGRESS"
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "doc": "Generated token text"
+    },
+  ]
+}
+
+{
+  "namespace": "inference.websocket",
+  "type": "record",
+  "name": "WsInferenceCompletionEvent",
+  "fields": [
+    {
+      "name": "request_id",
+      "type": "string",
+      "doc": "Id to identify the request"
+    },
+    {
+      "name": "type",
+      "type": "inference.common.ExecutionEventType",
+      "default": "COMPLETE",
+      "doc": "ExecutionEventType.COMPLETE"
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "doc": "Generated response text"
+    },
+    {
+      "name": "is_eos",
+      "type": "boolean",
+      "doc": "Is End of Sentence - did the model finish execution or not"
+    },
+    {
+      "name": "new_tokens_count",
+      "type": "int",
+      "doc": "Count of newly generated tokens"
+    },
+    {
+      "name": "execution_time",
+      "type": "float",
+      "doc": "Time it took the model to generate the response"
+    }
+  ]
+}
+
+{
+  "namespace": "inference.websocket",
+  "type": "record",
+  "name": "WsInferenceErrorEvent",
+  "fields": [
+    {
+      "name": "request_id",
+      "type": "string",
+      "doc": "Id to identify the request"
+    },
+    {
+      "name": "type",
+      "type": "inference.common.ExecutionEventType",
+      "default": "ERROR",
+      "doc": "ExecutionEventType.ERROR"
+    },
+    {
+      "name": "error",
+      "type": "string",
+      "doc": "Error description"
+    }
+  ]
+}
+
+
+{
+  "namespace": "inference.websocket",
+  "type": "record",
+  "name": "WsInferenceEvent",
+  "fields": [
+    {
+      "name": "event",
+      "type": [
+        {
+          "type": "record",
+          "name": "WsInferenceAcceptedEvent"
+        },
+        {
+          "type": "record",
+          "name": "WsInferenceStartedEvent"
+        },
+        {
+          "type": "record",
+          "name": "WsInferenceInitializedEvent"
+        },
+        {
+          "type": "record",
+          "name": "WsInferenceProgressEvent"
+        },
+        {
+          "type": "record",
+          "name": "WsInferenceCompletionEvent"
+        },
+        {
+          "type": "record",
+          "name": "WsInferenceErrorEvent"
+        }
+      ]
+    }
+  ]
+}
+
+{
+  "namespace": "inference.websocket",
+  "type": "record",
+  "name": "WsInferenceResponse",
+  "fields": [
+    {
+      "name": "events",
+      "type": {
+        "type": "array",
+        "items": "inference.websocket.WsInferenceEvent"
+      }
+    }
+  ]
+}
+
+
+
+
+
+
+
+
