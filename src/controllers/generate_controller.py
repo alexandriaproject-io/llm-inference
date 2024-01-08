@@ -9,7 +9,16 @@ from src.controllers.controller_utils import is_valid_config, is_valid_batch_ite
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TTransport
 from thrift.Thrift import TException
-from com.inference.rest.ttypes import ApiSinglePromptRequest
+from com.inference.rest.ttypes import ApiSinglePromptRequest, ApiSinglePromptStream
+
+
+def thrift_stream_text(text):
+    thrift_data = ApiSinglePromptStream(text=text)  # Adjust fields as needed
+    transport = TTransport.TMemoryBuffer()
+    protocol = TBinaryProtocol.TBinaryProtocol(transport)
+    thrift_data.write(protocol)
+    return transport.getvalue()
+
 
 @swagger_path('src/controllers/swagger/thrift_generate_one.yml')
 async def thrift_generate_one(request):
@@ -72,7 +81,8 @@ async def generate_one(request, custom_payload=None):
             if events["events_type"] == LLMEventTypes.ERROR:
                 error_message = str(events.get("error", "Unknown error occurred"))
                 log.error(f"Request {request_id} error: {error_message}")
-                await response.write(error_message.encode('utf-8'))
+                err_text = thrift_stream_text(error_message) if use_thrift else error_message.encode('utf-8')
+                await response.write(err_text)
                 await asyncio.sleep(0)
                 raise Exception(f"Error processing request {request_id}: {error_message}")
 
@@ -83,16 +93,17 @@ async def generate_one(request, custom_payload=None):
                 elif event["type"] == LLMEventTypes.INITIALIZED:
                     initialization = event["text"]
                     if is_streaming and not only_new_tokens:
-                        await response.write(event["text"].encode('utf-8'))
+                        text = thrift_stream_text(event["text"]) if use_thrift else event["text"].encode('utf-8')
+                        await response.write(text)
                 elif event["type"] == LLMEventTypes.PROGRESS:
-                    await response.write(event["text"].encode('utf-8'))
+                    text = thrift_stream_text(event["text"]) if use_thrift else event["text"].encode('utf-8')
+                    await response.write(text)
                 elif event["type"] == LLMEventTypes.COMPLETE:
                     counter = event["new_tokens"]
                     if not is_streaming:
-                        if not only_new_tokens:
-                            await response.write(event["text"].encode('utf-8'))
-                        else:
-                            await response.write(event["text"].replace(initialization, '').encode('utf-8'))
+                        text = event["text"].replace(initialization, '') if only_new_tokens else event["text"]
+                        text = thrift_stream_text(text) if use_thrift else text.encode('utf-8')
+                        await response.write(text)
                     break
         remove_queue()
         diff = time.perf_counter() - start_time

@@ -10,6 +10,10 @@ struct ApiSinglePromptRequest {
   5: optional com.inference.common.GenerationConfig generation_config;
 }
 
+struct ApiSinglePromptStream {
+   1: string text;  // Generated token text
+}
+
 struct ApiBatchPromptRequest {
   1: list<com.inference.common.SinglePrompt> prompts; // Array of SinglePrompt
   2: optional bool only_new_tokens; // Only return generated tokens or return prompt + generated tokens
