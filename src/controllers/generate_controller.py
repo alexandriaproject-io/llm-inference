@@ -6,12 +6,30 @@ import asyncio
 from src.config.types import LLMEventTypes
 from logger import log
 from src.controllers.controller_utils import is_valid_config, is_valid_batch_item
+from thrift.protocol import TBinaryProtocol
+from thrift.transport import TTransport
+from thrift.Thrift import TException
+from com.inference.rest.ttypes import ApiSinglePromptRequest
+
+@swagger_path('src/controllers/swagger/thrift_generate_one.yml')
+async def thrift_generate_one(request):
+    try:
+        transport = TTransport.TMemoryBuffer(await request.read())
+        record = ApiSinglePromptRequest()
+        record.read(TBinaryProtocol.TBinaryProtocol(transport))
+        return await generate_one(request, record)
+    except TException:
+        return web.Response(text="Invalid Thrift data format", status=400)
+    except Exception as e:  # Catch other general exceptions if necessary
+        # Log the exception here if needed
+        return web.Response(text=f"Error: {str(e)}", status=500)
 
 
 @swagger_path('src/controllers/swagger/generate_one.yml')
-async def generate_one(request):
+async def generate_one(request, custom_payload=None):
     try:
-        data = await request.json()
+        use_thrift = True if custom_payload else False
+        data = custom_payload if custom_payload else await request.json()
         request_id = data.get('request_id')
         prompt = data.get('prompt', ' ')
         generation_config = data.get('generation_config', None)
@@ -86,9 +104,9 @@ async def generate_one(request):
 
 
 @swagger_path('src/controllers/swagger/generate_batch.yml')
-async def generate_batch(request):
+async def generate_batch(request, custom_payload=None):
     try:
-        data = await request.json()
+        data = custom_payload if custom_payload else await request.json()
         prompts = data.get('prompts', [])
         generation_config = data.get('generation_config', None)
         only_new_tokens = data.get("only_new_tokens", True) if isinstance(data.get("only_new_tokens"), bool) else True
