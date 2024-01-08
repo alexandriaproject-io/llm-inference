@@ -1,0 +1,18 @@
+namespace java com.inference.rest
+
+include "com.inference.common.thrift"
+
+struct ApiSinglePromptRequest {
+  1: required string request_id; // Id to identify the request
+  2: optional string prompt;     // Request prompt
+  3: optional bool stream_response; // Stream generated tokens one by one
+  4: optional bool only_new_tokens; // Only return generated tokens or return prompt + generated tokens
+  5: optional com.inference.common.GenerationConfig generation_config;
+}
+
+struct ApiBatchPromptRequest {
+  1: list<com.inference.common.SinglePrompt> prompts; // Array of SinglePrompt
+  2: optional bool only_new_tokens; // Only return generated tokens or return prompt + generated tokens
+  3: optional com.inference.common.GenerationConfig generation_config;
+}
+

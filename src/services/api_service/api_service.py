@@ -32,8 +32,9 @@ def start_server(execution_queue, events_queue):
         asyncio.create_task(t_app["response_events"].listen())
 
     async def on_ready(t_app):
-        log.info(f"Swagger is available at http://{config.SERVER_HOST}:{config.SERVER_PORT}/swagger")
-        log.info(f"UI is available at      http://{config.SERVER_HOST}:{config.SERVER_PORT}/ui")
+        log.info(f"Swagger is available at          http://{config.SERVER_HOST}:{config.SERVER_PORT}/swagger")
+        log.info(f"UI is available at               http://{config.SERVER_HOST}:{config.SERVER_PORT}/ui")
+        log.info(f"Thrift types are available at    http://{config.SERVER_HOST}:{config.SERVER_PORT}/thrift")
 
     app.on_startup.append(on_startup)
     app.on_startup.append(on_ready)
