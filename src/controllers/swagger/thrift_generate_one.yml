@@ -1,76 +1,31 @@
 tags:
   - thrift-generation
 summary: Generate Single Response
-description: 'Generates a response based on the provided prompt and returns 200 status if the message has no more generation or  206 status if the generation was stopped due to max length.'
+description: 'Generates a response based on the provided prompt using Apache Thrift message format'
 operationId: thriftGenerateOne
 produces:
-  - application/json
+  - application/octet-stream
+consumes:
+  - application/octet-stream
 requestBody:
   required: true
   content:
-    application/json:
+    application/octet-stream:
       schema:
-        type: object
-        required:
-          - request_id
-          - prompt
-        properties:
-          request_id:
-            type: string
-            example: "YmFzZTY0"
-          prompt:
-            type: string
-            example: "[INST] Generate a very long poem about 1000 cats [/INST]\n\n"
-          only_new_tokens:
-            type: boolean
-            example: false
-          stream_response:
-            type: boolean
-            example: true
-          generation_config:
-            type: object
-            properties:
-              num_beams:
-                type: number
-                example: 1
-              do_sample:
-                type: boolean
-                example: true
-              temperature:
-                type: number
-                format: float
-                example: 1.0
-              top_p:
-                type: number
-                format: float
-                example: 1.0
-              top_k:
-                type: number
-                format: number
-                example: 50
-              max_new_tokens:
-                type: number
-                example: 2048
-              repetition_penalty:
-                type: number
-                format: float
-                example: 1
-              length_penalty:
-                type: number
-                format: float
-                example: 1
+        type: string
+        format: binary
 responses:
   "200":
     description: Successful operation
     content:
-      application/json:
+      application/octet-stream:
         schema:
           type: string
-          example: "In the land of feline delight,\nWhere..."
+          format: binary
   "400":
     description: Invalid input
     content:
-      application/json:
+      application/octet-stream:
         schema:
           type: string
-          example: "Invalid JSON format"
+          format: binary
