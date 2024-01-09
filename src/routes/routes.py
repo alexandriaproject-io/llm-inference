@@ -29,6 +29,7 @@ def set_routes(app):
         web.get('/api/ws', ws_controller.websocket_handler),
 
         web.post('/api/thrift/generate-one', generate_controller.thrift_generate_one),
+        web.post('/api/thrift/generate-batch', generate_controller.thrift_generate_batch),
     ])
 
 

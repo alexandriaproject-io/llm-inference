@@ -9,7 +9,13 @@ from src.controllers.controller_utils import is_valid_config, is_valid_batch_ite
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TTransport
 from thrift.Thrift import TException
-from com.inference.rest.ttypes import ApiSinglePromptRequest, ApiSinglePromptStream
+from com.inference.rest.ttypes import (
+    ApiSinglePromptRequest,
+    ApiSinglePromptStream,
+    ApiBatchPromptRequest,
+    ApiBatchPromptResponse,
+    ApiBatchPrompt
+)
 
 
 def thrift_stream_text(text):
@@ -29,8 +35,7 @@ async def thrift_generate_one(request):
         return await generate_one(request, record)
     except TException:
         return web.Response(text="Invalid Thrift data format", status=400)
-    except Exception as e:  # Catch other general exceptions if necessary
-        # Log the exception here if needed
+    except Exception as e:
         return web.Response(text=f"Error: {str(e)}", status=500)
 
 
@@ -57,7 +62,10 @@ async def generate_one(request, custom_payload=None):
         response = web.StreamResponse(
             status=200,
             reason='OK',
-            headers={'Content-Type': 'text/plain', 'Transfer-Encoding': 'chunked'},
+            headers={
+                'Content-Type': 'application/x-thrift' if use_thrift else 'text/plain',
+                'Transfer-Encoding': 'chunked'
+            },
         )
         await response.prepare(request)
         is_streaming = stream_response and (generation_config.get("num_beams", 1) == 1 if generation_config else True)
@@ -114,9 +122,23 @@ async def generate_one(request, custom_payload=None):
         return web.Response(text="Invalid JSON format", status=400)
 
 
+@swagger_path('src/controllers/swagger/thrift_generate_batch.yml')
+async def thrift_generate_batch(request):
+    try:
+        transport = TTransport.TMemoryBuffer(await request.read())
+        record = ApiBatchPromptRequest()
+        record.read(TBinaryProtocol.TBinaryProtocol(transport))
+        return await generate_batch(request, record)
+    except TException:
+        return web.Response(text="Invalid Thrift data format", status=400)
+    except Exception as e:
+        return web.Response(text=f"Error: {str(e)}", status=500)
+
+
 @swagger_path('src/controllers/swagger/generate_batch.yml')
 async def generate_batch(request, custom_payload=None):
     try:
+        use_thrift = True if custom_payload else False
         data = custom_payload if custom_payload else await request.json()
         prompts = data.get('prompts', [])
         generation_config = data.get('generation_config', None)
@@ -174,10 +196,34 @@ async def generate_batch(request, custom_payload=None):
             remapped_result["response"] = result["text"].replace(initialization["text"], '')
             remapped_results.append(remapped_result)
 
-        return web.Response(
-            text=json.dumps(remapped_results),
-            content_type='application/json',
-            status=200 if is_complete else 206
-        )
+        if use_thrift:
+            # Create an instance of ApiBatchPromptResponse
+            thrift_data = ApiBatchPromptResponse()
+            thrift_data.responses = []
+
+            # Populate the responses field with ApiBatchPrompt objects
+            for remapped_result in remapped_results:
+                batch_prompt = ApiBatchPrompt()
+                batch_prompt.request_id = remapped_result["request_id"]
+                batch_prompt.response = remapped_result["response"]
+                if not only_new_tokens:
+                    batch_prompt.prompt = remapped_result["prompt"]
+                thrift_data.responses.append(batch_prompt)
+
+            transport = TTransport.TMemoryBuffer()
+            protocol = TBinaryProtocol.TBinaryProtocol(transport)
+            thrift_data.write(protocol)
+
+            return web.Response(
+                body=transport.getvalue(),
+                content_type='application/x-thrift',
+                status=200 if is_complete else 206
+            )
+        else:
+            return web.Response(
+                text=json.dumps(remapped_results),
+                content_type='application/json',
+                status=200 if is_complete else 206
+            )
     except json.JSONDecodeError:
         return web.Response(text="Invalid JSON format", status=400)
