@@ -9,7 +9,9 @@
 <table class="table-bordered table-striped table-condensed"><thead><tr><th>Module</th><th>Services</th><th>Data types</th><th>Constants</th></tr></thead><tbody>
 <tr>
 <td>com.inference.rest</td><td></td>
-<td><a href="#Struct_ApiBatchPromptRequest">ApiBatchPromptRequest</a><br/>
+<td><a href="#Struct_ApiBatchPrompt">ApiBatchPrompt</a><br/>
+<a href="#Struct_ApiBatchPromptRequest">ApiBatchPromptRequest</a><br/>
+<a href="#Struct_ApiBatchPromptResponse">ApiBatchPromptResponse</a><br/>
 <a href="#Struct_ApiSinglePromptRequest">ApiSinglePromptRequest</a><br/>
 <a href="#Struct_ApiSinglePromptStream">ApiSinglePromptStream</a><br/>
 </td>
@@ -31,4 +33,12 @@
 <tr><td>1</td><td>prompts</td><td><code>list&lt;<code><a href="com.inference.common.html#Struct_SinglePrompt">com.inference.common.SinglePrompt</a></code>&gt;</code></td><td></td><td>default</td><td></td></tr>
 <tr><td>2</td><td>only_new_tokens</td><td><code>bool</code></td><td></td><td>optional</td><td></td></tr>
 <tr><td>3</td><td>generation_config</td><td><code><a href="com.inference.common.html#Struct_GenerationConfig">com.inference.common.GenerationConfig</a></code></td><td></td><td>optional</td><td></td></tr>
+</tbody></table><br/></div><div class="definition"><h3 id="Struct_ApiBatchPrompt">Struct: ApiBatchPrompt</h3>
+<table class="table-bordered table-striped table-condensed"><thead><tr><th>Key</th><th>Field</th><th>Type</th><th>Description</th><th>Requiredness</th><th>Default value</th></tr></thead><tbody>
+<tr><td>1</td><td>request_id</td><td><code>string</code></td><td></td><td>default</td><td></td></tr>
+<tr><td>2</td><td>prompt</td><td><code>string</code></td><td></td><td>optional</td><td></td></tr>
+<tr><td>3</td><td>response</td><td><code>string</code></td><td></td><td>default</td><td></td></tr>
+</tbody></table><br/></div><div class="definition"><h3 id="Struct_ApiBatchPromptResponse">Struct: ApiBatchPromptResponse</h3>
+<table class="table-bordered table-striped table-condensed"><thead><tr><th>Key</th><th>Field</th><th>Type</th><th>Description</th><th>Requiredness</th><th>Default value</th></tr></thead><tbody>
+<tr><td>1</td><td>responses</td><td><code>list&lt;<code><a href="#Struct_ApiBatchPrompt">ApiBatchPrompt</a></code>&gt;</code></td><td></td><td>default</td><td></td></tr>
 </tbody></table><br/></div></div></body></html>

@@ -265,6 +265,151 @@ class ApiBatchPromptRequest(object):
 
     def __ne__(self, other):
         return not (self == other)
+
+
+class ApiBatchPrompt(object):
+    """
+    Attributes:
+     - request_id
+     - prompt
+     - response
+
+    """
+
+
+    def __init__(self, request_id=None, prompt=None, response=None,):
+        self.request_id = request_id
+        self.prompt = prompt
+        self.response = response
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 1:
+                if ftype == TType.STRING:
+                    self.request_id = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 2:
+                if ftype == TType.STRING:
+                    self.prompt = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 3:
+                if ftype == TType.STRING:
+                    self.response = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('ApiBatchPrompt')
+        if self.request_id is not None:
+            oprot.writeFieldBegin('request_id', TType.STRING, 1)
+            oprot.writeString(self.request_id.encode('utf-8') if sys.version_info[0] == 2 else self.request_id)
+            oprot.writeFieldEnd()
+        if self.prompt is not None:
+            oprot.writeFieldBegin('prompt', TType.STRING, 2)
+            oprot.writeString(self.prompt.encode('utf-8') if sys.version_info[0] == 2 else self.prompt)
+            oprot.writeFieldEnd()
+        if self.response is not None:
+            oprot.writeFieldBegin('response', TType.STRING, 3)
+            oprot.writeString(self.response.encode('utf-8') if sys.version_info[0] == 2 else self.response)
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+
+
+class ApiBatchPromptResponse(object):
+    """
+    Attributes:
+     - responses
+
+    """
+
+
+    def __init__(self, responses=None,):
+        self.responses = responses
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 1:
+                if ftype == TType.LIST:
+                    self.responses = []
+                    (_etype10, _size7) = iprot.readListBegin()
+                    for _i11 in range(_size7):
+                        _elem12 = ApiBatchPrompt()
+                        _elem12.read(iprot)
+                        self.responses.append(_elem12)
+                    iprot.readListEnd()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('ApiBatchPromptResponse')
+        if self.responses is not None:
+            oprot.writeFieldBegin('responses', TType.LIST, 1)
+            oprot.writeListBegin(TType.STRUCT, len(self.responses))
+            for iter13 in self.responses:
+                iter13.write(oprot)
+            oprot.writeListEnd()
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
 all_structs.append(ApiSinglePromptRequest)
 ApiSinglePromptRequest.thrift_spec = (
     None,  # 0
@@ -285,6 +430,18 @@ ApiBatchPromptRequest.thrift_spec = (
     (1, TType.LIST, 'prompts', (TType.STRUCT, [com.inference.common.ttypes.SinglePrompt, None], False), None, ),  # 1
     (2, TType.BOOL, 'only_new_tokens', None, None, ),  # 2
     (3, TType.STRUCT, 'generation_config', [com.inference.common.ttypes.GenerationConfig, None], None, ),  # 3
+)
+all_structs.append(ApiBatchPrompt)
+ApiBatchPrompt.thrift_spec = (
+    None,  # 0
+    (1, TType.STRING, 'request_id', 'UTF8', None, ),  # 1
+    (2, TType.STRING, 'prompt', 'UTF8', None, ),  # 2
+    (3, TType.STRING, 'response', 'UTF8', None, ),  # 3
+)
+all_structs.append(ApiBatchPromptResponse)
+ApiBatchPromptResponse.thrift_spec = (
+    None,  # 0
+    (1, TType.LIST, 'responses', (TType.STRUCT, [ApiBatchPrompt, None], False), None, ),  # 1
 )
 fix_spec(all_structs)
 del all_structs

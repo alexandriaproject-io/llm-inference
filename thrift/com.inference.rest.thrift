@@ -20,3 +20,12 @@ struct ApiBatchPromptRequest {
   3: optional com.inference.common.GenerationConfig generation_config;
 }
 
+struct ApiBatchPrompt {
+  1: string request_id,         // Id to identify the request
+  2: optional string prompt,    // Request prompt if only_new_tokens is set to false
+  3: string response            // Generated response text
+}
+
+struct ApiBatchPromptResponse {
+  1: list<ApiBatchPrompt> responses; // List of responses
+}
