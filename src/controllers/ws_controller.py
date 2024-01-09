@@ -4,6 +4,13 @@ import json
 from logger import log
 from src.config.types import LLMEventTypes
 from src.controllers.controller_utils import is_valid_batch, is_valid_config
+from thrift.protocol import TBinaryProtocol
+from thrift.transport import TTransport
+from thrift.Thrift import TException
+from src.utils.thrift_dict import thrift_to_dict
+from com.inference.ws.ttypes import (
+    WsInferenceRequest,
+)
 
 async def handle_message(ws, data, executions, use_thrift):
     prompts = data.get('prompts', [])
@@ -104,6 +111,16 @@ async def websocket_handler(request):
                 asyncio.create_task(handle_message(ws, data, executions, False))
             except json.JSONDecodeError:
                 await ws.send_str('{"error": "Invalid JSON received"}')
+        elif msg.type == web.WSMsgType.BINARY:
+            try:
+                transport = TTransport.TMemoryBuffer(await request.read())
+                record = WsInferenceRequest()
+                record.read(TBinaryProtocol.TBinaryProtocol(transport))
+                asyncio.create_task(handle_message(ws, thrift_to_dict(record), executions, True))
+            except TException:
+                await ws.send_str('{"error": "Invalid Thrift message received"}')
+            except Exception as e:
+                await ws.send_str('{"error": "Something broke"}')
         elif msg.type == web.WSMsgType.ERROR:
             print('WebSocket connection closed with exception %s' % ws.exception())
 
