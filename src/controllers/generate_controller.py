@@ -6,6 +6,7 @@ import asyncio
 from src.config.types import LLMEventTypes
 from logger import log
 from src.controllers.controller_utils import is_valid_config, is_valid_batch_item
+from src.utils.thrift_dict import thrift_to_dict
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TTransport
 from thrift.Thrift import TException
@@ -32,7 +33,7 @@ async def thrift_generate_one(request):
         transport = TTransport.TMemoryBuffer(await request.read())
         record = ApiSinglePromptRequest()
         record.read(TBinaryProtocol.TBinaryProtocol(transport))
-        return await generate_one(request, record)
+        return await generate_one(request, thrift_to_dict(record))
     except TException:
         return web.Response(text="Invalid Thrift data format", status=400)
     except Exception as e:
@@ -42,8 +43,8 @@ async def thrift_generate_one(request):
 @swagger_path('src/controllers/swagger/generate_one.yml')
 async def generate_one(request, custom_payload=None):
     try:
-        use_thrift = True if custom_payload else False
-        data = custom_payload if custom_payload else await request.json()
+        use_thrift = False if custom_payload is None else True
+        data = custom_payload if use_thrift else await request.json()
         request_id = data.get('request_id')
         prompt = data.get('prompt', ' ')
         generation_config = data.get('generation_config', None)
@@ -125,11 +126,13 @@ async def generate_one(request, custom_payload=None):
 @swagger_path('src/controllers/swagger/thrift_generate_batch.yml')
 async def thrift_generate_batch(request):
     try:
-        transport = TTransport.TMemoryBuffer(await request.read())
+        request_data = await request.read()
+        binary_data = bytes(request_data)
+        transport = TTransport.TMemoryBuffer(binary_data)
         record = ApiBatchPromptRequest()
         record.read(TBinaryProtocol.TBinaryProtocol(transport))
-        return await generate_batch(request, record)
-    except TException:
+        return await generate_batch(request, thrift_to_dict(record))
+    except TException as e:
         return web.Response(text="Invalid Thrift data format", status=400)
     except Exception as e:
         return web.Response(text=f"Error: {str(e)}", status=500)
@@ -138,8 +141,8 @@ async def thrift_generate_batch(request):
 @swagger_path('src/controllers/swagger/generate_batch.yml')
 async def generate_batch(request, custom_payload=None):
     try:
-        use_thrift = True if custom_payload else False
-        data = custom_payload if custom_payload else await request.json()
+        use_thrift = False if custom_payload is None else True
+        data = custom_payload if use_thrift else await request.json()
         prompts = data.get('prompts', [])
         generation_config = data.get('generation_config', None)
         only_new_tokens = data.get("only_new_tokens", True) if isinstance(data.get("only_new_tokens"), bool) else True
