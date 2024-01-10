@@ -7,10 +7,11 @@ from src.controllers.controller_utils import is_valid_batch, is_valid_config
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TTransport
 from thrift.Thrift import TException
-from src.utils.thrift_dict import thrift_to_dict
+from src.utils.thrift_dict import thrift_to_dict, thrift_read
 from com.inference.ws.ttypes import (
     WsInferenceRequest,
 )
+
 
 async def handle_message(ws, data, executions, use_thrift):
     prompts = data.get('prompts', [])
@@ -19,19 +20,22 @@ async def handle_message(ws, data, executions, use_thrift):
     stream_response = data.get("stream_response", True) if isinstance(data.get("stream_response"), bool) else True
 
     if not is_valid_batch(prompts) or not is_valid_config(generation_config):
-        await ws.send_str('{"error": "Invalid prompts or generation_config"}')
+        error_json = {"error": "Invalid prompts or generation_config"}
+        await ws.send_json(error_json)
         return
 
     request_ids = [item['request_id'] for item in prompts]
     request_prompts = [item['prompt'] for item in prompts]
-    await ws.send_str(json.dumps([{"request_id": request_id, "type": 'ACCEPTED'} for request_id in request_ids]))
-
     response_queue, remove_queue = await executions.execute_prompts(
         request_ids,
         request_prompts,
         generation_config,
         stream_response
     )
+
+    accepted_json = [{"request_id": request_id, "type": 'ACCEPTED'} for request_id in request_ids]
+    await ws.send_json(accepted_json)
+
     initializations = []
 
     while True:
@@ -40,7 +44,8 @@ async def handle_message(ws, data, executions, use_thrift):
             break
 
         if events is None:
-            await ws.send_str('{"error": "Server is shutting down."}')
+            error_json = {"error": "Server is shutting down."}
+            await ws.send_json(error_json)
             await ws.close()
             break
 
@@ -110,17 +115,18 @@ async def websocket_handler(request):
                 data = json.loads(msg.data)
                 asyncio.create_task(handle_message(ws, data, executions, False))
             except json.JSONDecodeError:
-                await ws.send_str('{"error": "Invalid JSON received"}')
+                error_json = {"error": "Invalid JSON received"}
+                await ws.send_json(error_json)
         elif msg.type == web.WSMsgType.BINARY:
             try:
-                transport = TTransport.TMemoryBuffer(await request.read())
-                record = WsInferenceRequest()
-                record.read(TBinaryProtocol.TBinaryProtocol(transport))
+                record = thrift_read(await request.read(), WsInferenceRequest)
                 asyncio.create_task(handle_message(ws, thrift_to_dict(record), executions, True))
             except TException:
-                await ws.send_str('{"error": "Invalid Thrift message received"}')
+                error_json = {"error": "Invalid Thrift message received"}
+                await ws.send_json(error_json)
             except Exception as e:
-                await ws.send_str('{"error": "Something broke"}')
+                error_json = {"error": "Something broke"}
+                await ws.send_json(error_json)
         elif msg.type == web.WSMsgType.ERROR:
             print('WebSocket connection closed with exception %s' % ws.exception())
 
