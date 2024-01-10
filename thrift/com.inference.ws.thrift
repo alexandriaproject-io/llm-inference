@@ -40,6 +40,10 @@ struct WsInferenceErrorEvent {
   3: string error; // Error description
 }
 
+struct WsErrorEvent {
+  3: string error; // Error description
+}
+
 union WsInferenceEvent {
   1: WsInferenceAcceptedEvent acceptedEvent;
   2: WsInferenceStartedEvent startedEvent;
@@ -47,6 +51,7 @@ union WsInferenceEvent {
   4: WsInferenceProgressEvent progressEvent;
   5: WsInferenceCompletionEvent completionEvent;
   6: WsInferenceErrorEvent errorEvent;
+  7: WsInferenceErrorEvent wsErrorEvent;
 }
 
 struct WsInferenceResponse {
