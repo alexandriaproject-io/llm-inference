@@ -239,7 +239,7 @@ const WebsocketView = () => {
               <CInputGroup>
                 <CInputGroupText>RequestId</CInputGroupText>
                 <CFormInput
-                  disabled={isWaiting || isContinuePrompt}
+                  disabled={isWaiting || isStreaming || isContinuePrompt}
                   placeholder="request_id"
                   type="text"
                   value={request_id}
