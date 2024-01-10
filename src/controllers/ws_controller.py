@@ -10,6 +10,12 @@ from com.inference.ws.ttypes import (
     WsInferenceRequest,
     WsInferenceResponse,
     WsErrorEvent,
+    WsInferenceAcceptedEvent,
+    WsInferenceStartedEvent,
+    WsInferenceInitializedEvent,
+    WsInferenceProgressEvent,
+    WsInferenceCompletionEvent,
+    WsInferenceErrorEvent,
 )
 
 
@@ -43,7 +49,7 @@ async def handle_message(ws, data, executions, use_thrift):
 
     if not is_valid_batch(prompts) or not is_valid_config(generation_config):
         error_json = [{"error": "Invalid prompts or generation_config"}]
-        await ws.send_json(error_json)
+        await ws_send_response(ws, error_json, WsErrorEvent, use_thrift)
         return
 
     request_ids = [item['request_id'] for item in prompts]
@@ -56,7 +62,7 @@ async def handle_message(ws, data, executions, use_thrift):
     )
 
     accepted_json = [{"request_id": request_id, "type": 'ACCEPTED'} for request_id in request_ids]
-    await ws.send_json(accepted_json)
+    await ws_send_response(ws, accepted_json, WsInferenceAcceptedEvent, use_thrift)
 
     initializations = []
 
@@ -67,7 +73,7 @@ async def handle_message(ws, data, executions, use_thrift):
 
         if events is None:
             error_json = [{"error": "Server is shutting down."}]
-            await ws.send_json(error_json)
+            await ws_send_response(ws, error_json, WsErrorEvent, use_thrift)
             await ws.close()
             break
 
@@ -79,7 +85,7 @@ async def handle_message(ws, data, executions, use_thrift):
                 "type": "ERROR",
                 "error": str(event["error"])
             } for event in events["events"] if event is not None]
-            await ws.send_json(error_events)
+            await ws_send_response(ws, error_events, WsInferenceErrorEvent, use_thrift)
             break
 
         elif events["events_type"] == LLMEventTypes.START:
@@ -88,7 +94,7 @@ async def handle_message(ws, data, executions, use_thrift):
                 "request_id": event["request_id"],
                 "type": "STARTED"
             } for event in events["events"] if event is not None]
-            await ws.send_json(start_events)
+            await ws_send_response(ws, start_events, WsInferenceStartedEvent, use_thrift)
 
         elif (events["events_type"]) == LLMEventTypes.INITIALIZED:
             initializations = events["events"]
@@ -98,7 +104,7 @@ async def handle_message(ws, data, executions, use_thrift):
                     "text": event["text"] if not only_new_tokens else '',
                     "type": "INITIALIZED"
                 } for event in events["events"] if event is not None]
-                await ws.send_json(initialized_events)
+                await ws_send_response(ws, initialized_events, WsInferenceInitializedEvent, use_thrift)
 
         elif (events["events_type"]) == LLMEventTypes.PROGRESS:
             if stream_response:
@@ -107,7 +113,7 @@ async def handle_message(ws, data, executions, use_thrift):
                     "text": event["text"],
                     "type": "PROGRESS"
                 } for event in events["events"] if event is not None]
-                await ws.send_json(progress_events)
+                await ws_send_response(ws, progress_events, WsInferenceProgressEvent, use_thrift)
 
         elif (events["events_type"]) == LLMEventTypes.COMPLETE:
             complete_events = [{
@@ -118,7 +124,7 @@ async def handle_message(ws, data, executions, use_thrift):
                 "execution_time": event["execution_time"],
                 "type": "COMPLETE"
             } for event, initialization in zip(events["events"], initializations) if event is not None]
-            await ws.send_json(complete_events)
+            await ws_send_response(ws, complete_events, WsInferenceCompletionEvent, use_thrift)
             total_count = sum(result['new_tokens'] for result in events["events"])
             log.info(
                 f"Execution took of {total_count} tokens was {events['execution_time']} sec at {total_count / events['execution_time']} t/s")
