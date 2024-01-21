@@ -1,6 +1,14 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer, LlamaForCausalLM, MistralForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import transformers
 from logger import log
 import torch
+
+
+def get_model_loader(model_loader_class):
+    if hasattr(transformers, model_loader_class):
+        return getattr(transformers, model_loader_class)
+    else:
+        return AutoModelForCausalLM
 
 
 class BaseStreamer:
@@ -53,8 +61,8 @@ class LLMModel:
         device_map = "auto" if self.config["DEVICE_MAP_AUTO"] else (
             'cpu' if self.device == 'cpu' else f"cuda:{self.config['TARGET_GPU_INDEX']}"
         )
-
-        self.model = AutoModelForCausalLM.from_pretrained(
+        llm_model_loader = get_model_loader(self.config["MODEL_LOADER"])
+        self.model = llm_model_loader.from_pretrained(
             self.model_path,
             return_dict=True,
             load_in_8bit=self.is8bitQuantized,
