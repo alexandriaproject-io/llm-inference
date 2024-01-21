@@ -53,7 +53,7 @@ class LLMModel:
         low_mem_mode = self.isQuantized or self.config["LOW_CPU_MEM_USAGE"]
 
         if low_mem_mode:
-            device_map = 'cpu' if self.device == 'cpu' else self.config["TARGET_GPU_INDEX"]
+            device_map = 'cpu' if self.device == 'cpu' else f"cuda:{self.config['TARGET_GPU_INDEX']}"
         else:
             device_map = None
 
@@ -72,9 +72,9 @@ class LLMModel:
         log.info("Tokenizer loaded.")
 
     def run_model(self):
-        if not self.config["LOW_CPU_MEM_USAGE"] and not self.isQuantized:
-            log.info(f"Transferring model to gpu")
-            self.model.to(self.device)
+        # if not self.config["LOW_CPU_MEM_USAGE"] and not self.isQuantized:
+        #     log.info(f"Transferring model to gpu")
+        #     self.model.to(self.device)
         log.info(f"Evaluating the model.")
         self.model.eval()
         self.isReady = True
@@ -163,7 +163,7 @@ class LLMModel:
                 temperature=float(config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"])),
                 top_p=float(config.get("top_p", self.config["MODEL_DEFAULT_TOP_P"])),
                 top_k=int(config.get("top_k", self.config["MODEL_DEFAULT_TOP_K"])),
-                max_new_tokens=int(config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"])),
+                max_new_tokens=0, # int(config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"])),
                 length_penalty=float(config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"])),
                 repetition_penalty=float(
                     config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"])),
@@ -171,6 +171,6 @@ class LLMModel:
                 streamer=streamer
             )
 
-        if self.device == "cuda":
-            torch.cuda.empty_cache()
+            if self.device == "cuda":
+                torch.cuda.empty_cache()
         return model_output.sequences, model_output.get("past_key_values", None)
