@@ -142,8 +142,6 @@ class LLMModel:
         if not self.isReady:
             raise NotReadyException("Model not ready.Please Use Model.load_model(path, config) and Model.run_model()")
 
-        if self.device == "cuda":
-            torch.cuda.empty_cache()
         with torch.inference_mode():
             model_output = self.model.generate(
                 input_ids=tokens,
