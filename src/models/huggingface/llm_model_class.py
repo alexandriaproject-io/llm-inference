@@ -1,4 +1,4 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, LlamaForCausalLM, MistralForCausalLM
 from logger import log
 import torch
 
@@ -50,21 +50,18 @@ class LLMModel:
         torch.cuda.manual_seed(self.config["MODEL_SEED"])
         torch.manual_seed(self.config["MODEL_SEED"])
         log.info("Loading model from disk. Be patient this can take a while...")
-        low_mem_mode = self.isQuantized or self.config["LOW_CPU_MEM_USAGE"]
+        device_map = "auto" if self.config["DEVICE_MAP_AUTO"] else (
+            'cpu' if self.device == 'cpu' else f"cuda:{self.config['TARGET_GPU_INDEX']}"
+        )
 
-        if low_mem_mode:
-            device_map = 'cpu' if self.device == 'cpu' else f"cuda:{self.config['TARGET_GPU_INDEX']}"
-        else:
-            device_map = None
-
-        self.model = AutoModelForCausalLM.from_pretrained(
+        self.model = MistralForCausalLM.from_pretrained(
             self.model_path,
             return_dict=True,
             load_in_8bit=self.is8bitQuantized,
             load_in_4bit=self.is4bitQuantized,
             device_map=device_map,
             torch_dtype=self.model_type,
-            low_cpu_mem_usage=low_mem_mode
+            low_cpu_mem_usage=True
         )
         log.info("Model loaded.")
         self.load_tokenizer()
@@ -72,9 +69,6 @@ class LLMModel:
         log.info("Tokenizer loaded.")
 
     def run_model(self):
-        # if not self.config["LOW_CPU_MEM_USAGE"] and not self.isQuantized:
-        #     log.info(f"Transferring model to gpu")
-        #     self.model.to(self.device)
         log.info(f"Evaluating the model.")
         self.model.eval()
         self.isReady = True
@@ -147,7 +141,7 @@ class LLMModel:
     def generate_cache(self, tokens, attention_mask, past_key_values, config, streamer=None):
         if not self.isReady:
             raise NotReadyException("Model not ready.Please Use Model.load_model(path, config) and Model.run_model()")
-        
+
         with torch.inference_mode():
             model_output = self.model.generate(
                 input_ids=tokens,

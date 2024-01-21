@@ -19,8 +19,8 @@ LLAMA_CPP_BATCH_TOKENS = int(os.getenv("LLAMA_CPP_BATCH_TOKENS", "2048"))
 LLAMA_RAM_CACHE_MB = int(os.getenv("LLAMA_RAM_CACHE_MB", "512"))
 
 ENABLE_CUDA = os.getenv("ENABLE_CUDA", "true").lower() == 'true'
+DEVICE_MAP_AUTO = os.getenv("DEVICE_MAP_AUTO", "true").lower() == 'true'
 TARGET_GPU_INDEX = int(os.getenv("TARGET_GPU_INDEX", "0"))
-LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "False").lower() == 'true'
 LOAD_IN_8BIT = os.getenv("LOAD_IN_8BIT", "False").lower() == 'true'
 LOAD_IN_4BIT = os.getenv("LOAD_IN_4BIT", "False").lower() == 'true'
 SPACE_TOKEN_CHAR = os.getenv("SPACE_TOKEN_CHAR")
@@ -40,10 +40,10 @@ MODEL_DEFAULT_LENGTH_PENALTY = float(os.getenv("MODEL_DEFAULT_LENGTH_PENALTY", "
 
 BASE_MODEL_CONFIG = {
     "ENABLE_CUDA": ENABLE_CUDA,
+    "DEVICE_MAP_AUTO": DEVICE_MAP_AUTO,
     "LOAD_IN_8BIT": LOAD_IN_8BIT,
     "LOAD_IN_4BIT": LOAD_IN_4BIT,
     "SPACE_TOKEN_CHAR": SPACE_TOKEN_CHAR,
-    "LOW_CPU_MEM_USAGE": LOW_CPU_MEM_USAGE,
     "TARGET_GPU_INDEX": TARGET_GPU_INDEX,
     "MODEL_SEED": MODEL_SEED,
     "MODEL_DEFAULT_NUM_BEAMS": MODEL_DEFAULT_NUM_BEAMS,

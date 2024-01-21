@@ -126,13 +126,13 @@ You can find the example file here [.env.example](.env.example)
 | **Variable Name**     | **Default Value** | **values**  | **Description**                                                                                                                                                             |
 |-----------------------|-------------------|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **ENABLE_CUDA**       | true              | true, false | Will try to run the model on the GPU if supported but will default to CPU if cuda is not supported.                                                                         |
-| **TARGET_GPU_INDEX**  | 0                 | Any Int     | Specify witch GPU to use to run the model when using LOW_CPU_MEM_USAGE set to true.<br/>Only applicable when GPU is in use                                                  |
-| **LOW_CPU_MEM_USAGE** | true              | true, false | Exchange slower loading for less memory usage when loading the model                                                                                                        |
+| **DEVICE_MAP_AUTO**   | false             | true, false | Will automatically space the model on all GPUs and the CPU. TARGET_GPU_INDEX will be ignored when set to True                                                               |
+| **TARGET_GPU_INDEX**  | 0                 | Any Int     | Specify witch GPU to use to run the model on.<br/>Only applicable when GPU is in use                                                                                        |
 | **LOAD_IN_8BIT**      | false             | true, false | When true, loads the model in 8-bit precision instead of the standard 16-bit (bfloat16/float16), reducing RAM/GPU memory use but sacrificing some precision.                |
 | **LOAD_IN_4BIT**      | false             | true, false | **LINUX ONLY** When true, loads the model in 4-bit precision instead of the standard 16-bit (bfloat16/float16), reducing RAM/GPU memory use but sacrificing some precision. |
 | **SPACE_TOKEN_CHAR**  | ▁                 | String      | Some models like LLama 2 remove leading space when decoding token by token, define this token to try and fix that behaviour on PROGRESS events                              |
-
-### Default generation config:
+`
+### Default generation config:`
 
 | **Variable Name**             | **Default Value** | **values**   | **Description**                                                                                                                                                                                                    |
 |-------------------------------|-------------------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
