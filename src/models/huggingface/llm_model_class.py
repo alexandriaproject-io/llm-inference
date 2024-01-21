@@ -54,7 +54,7 @@ class LLMModel:
             'cpu' if self.device == 'cpu' else f"cuda:{self.config['TARGET_GPU_INDEX']}"
         )
 
-        self.model = MistralForCausalLM.from_pretrained(
+        self.model = AutoModelForCausalLM.from_pretrained(
             self.model_path,
             return_dict=True,
             load_in_8bit=self.is8bitQuantized,
