@@ -163,7 +163,7 @@ class LLMModel:
                 temperature=float(config.get("temperature", self.config["MODEL_DEFAULT_TEMPERATURE"])),
                 top_p=float(config.get("top_p", self.config["MODEL_DEFAULT_TOP_P"])),
                 top_k=int(config.get("top_k", self.config["MODEL_DEFAULT_TOP_K"])),
-                max_new_tokens=0, # int(config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"])),
+                max_new_tokens=int(config.get("max_new_tokens", self.config["MODEL_DEFAULT_MAX_NEW_TOKENS"])),
                 length_penalty=float(config.get("length_penalty", self.config["MODEL_DEFAULT_LENGTH_PENALTY"])),
                 repetition_penalty=float(
                     config.get("repetition_penalty", self.config["MODEL_DEFAULT_REPETITION_PENALTY"])),
