@@ -37,7 +37,7 @@ class LLMModel:
         self.model = None
         self.config = config
         self.model_path = model_path
-        self.device = "cuda" if self.config["ENABLE_CUDA"] and torch.cuda.is_available() else "cpu"
+        self.device = f"cuda:{self.config['TARGET_GPU_INDEX']}" if self.config["ENABLE_CUDA"] and torch.cuda.is_available() else "cpu"
         self.isBF16Supported = False if not self.config["ENABLE_CUDA"] else torch.cuda.is_bf16_supported()
         self.is8bitQuantized = self.config["LOAD_IN_8BIT"] and not self.config["LOAD_IN_4BIT"]
         self.is4bitQuantized = self.config["LOAD_IN_4BIT"]
