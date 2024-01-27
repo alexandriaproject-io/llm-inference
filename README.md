@@ -71,11 +71,7 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
         - ```
             docker build -f docker/Dockerfile.cuda12 -t alexandria_project .
 
-            docker run -p 5050:5050 --env-file ./env-samples/.env.auto.example \
-        -v $(pwd)/TinyLlama-1.1B-Chat-v1.0:/usr/src/app/app/TinyLlama-1.1B-Chat-v1.0 \
-        -e MODEL_PATH=TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
-        --name alexandria_projecdt_instance \
-        alexandria_project python main.py --multiprocess
+            docker run -p 5050:5050 -v path/to/some_model:/usr/model alexandria_project
           ```
 
 - **CUDA Mode**
@@ -101,9 +97,7 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
 
 - **run cuda with local model**
     - ```
-    docker run --gpus all -p 5050:5050 \
-        -v path/to/some_model:/usr/model \
-        alexandria-project
+    docker run --gpus all -p 5050:5050 -v path/to/some_model:/usr/model alexandria-project
     ``` 
 - **run cuda with hugging face**
     - ```
