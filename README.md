@@ -69,8 +69,6 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
 - **CPU Mode**  (** NOT IMPLEMENTED **)
     - CPU - slow but reliable
         - ```
-            docker build -f docker/Dockerfile.cuda12 -t alexandria_project .
-
             docker run -p 5050:5050 -v path/to/some_model:/usr/model alexandria_project
           ```
 
@@ -85,15 +83,6 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
             docker run --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark
             ```
             - If not install [docker-nvida2](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
-
-- **Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx )**
-    - ```
-       docker build -f docker/Dockerfile.cuda12 -t alexandria-project .  
-      ```
-- **Cuda 11.8 ( for GTX 10xx series)**
-    - ```
-       docker build -f docker/Dockerfile.cuda11 -t alexandria-project .  
-      ```
 
 - **run cuda with local model**
     - ```
