@@ -90,7 +90,7 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
     ``` 
 - **run cuda with hugging face**
     - ```
-    docker run --gpus all -e MODEL_PATH=TinyLlama/TinyLlama-1.1B-Chat-v1.0 -p 5050:5050 alexandria-project
+    docker run --gpus all -e MODEL_PATH="[huggingface model url]" -p 5050:5050 alexandria-project
     ```
 - **run with custom env-file**
     - ```
