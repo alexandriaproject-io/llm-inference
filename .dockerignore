@@ -1,7 +1,0 @@
-models/
-docs/
-venv/
-__pycache__/
-README.md
-thrift_build.ps1
-thrift_build.sh

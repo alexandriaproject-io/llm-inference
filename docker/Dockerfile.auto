@@ -11,7 +11,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 COPY ./env-samples/.env.auto.example ./.env
 
 # Copy the current directory contents into the container at /usr/src/app
-COPY . .
+COPY ./LICENSE ./LICENSE
+COPY ./com/ ./com/
+COPY ./html ./html/
+COPY ./src ./src/
+COPY ./main.py ./main.py
+COPY ./logger.py ./logger.py
+COPY ./requirements.txt ./requirements.txt
+COPY ./ui-app ./ui-app
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
