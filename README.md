@@ -77,12 +77,12 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
     - requirements:
       - nvidia-drivers (instruction in the sections above according to your os)
       - [cuda](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64)
-        
+      - [docker-nvida2](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
     - Verify docker access:
-        - ```
+        ```
             docker run --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark
-            ```
-            - If not install [docker-nvida2](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+        ```
 
 - **run cuda with local model**
     - ```
