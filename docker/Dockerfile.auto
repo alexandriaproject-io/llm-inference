@@ -3,9 +3,8 @@ FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Install build tools and compilers
-# Avoid user interaction with tzdata when installing
-ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -y
+
 
 # apply the relevant .env
 COPY ./env-samples/.env.auto.example ./.env
