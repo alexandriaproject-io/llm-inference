@@ -1,7 +1,7 @@
 from aiohttp import web
 import asyncio
 import json
-from logger import log
+from src.utils.logger import log
 from src.config.types import LLMEventTypes
 from src.controllers.controller_utils import is_valid_batch, is_valid_config
 from thrift.Thrift import TException

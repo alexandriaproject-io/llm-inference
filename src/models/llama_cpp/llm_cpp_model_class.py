@@ -1,7 +1,7 @@
-from logger import log
 import llama_cpp
 from src.models.llama_cpp.utils import MockTensor
 from src.config import config
+from src.utils.logger import log
 
 
 class NotReadyException(Exception):

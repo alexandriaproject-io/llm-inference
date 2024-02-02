@@ -15,7 +15,6 @@ COPY ./com/ ./com/
 COPY ./html ./html/
 COPY ./src ./src/
 COPY ./main.py ./main.py
-COPY ./logger.py ./logger.py
 COPY ./requirements.txt ./requirements.txt
 COPY ./ui-app ./ui-app
 

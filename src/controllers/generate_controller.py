@@ -4,7 +4,7 @@ import json
 import time
 import asyncio
 from src.config.types import LLMEventTypes
-from logger import log
+from src.utils.logger import log
 from src.controllers.controller_utils import is_valid_config, is_valid_batch_item
 from src.utils.thrift_dict import thrift_to_dict
 from thrift.protocol import TBinaryProtocol

@@ -3,7 +3,7 @@ import aiohttp
 import aiohttp_swagger
 import asyncio
 from aiohttp import web
-from logger import log
+from src.utils.logger import log
 from src.config import config
 from src.routes.routes import set_routes, set_cors, set_ui
 from src.models.huggingface.llm_tokenizer import LLMTokenizer

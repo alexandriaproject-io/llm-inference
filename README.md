@@ -5,6 +5,9 @@ Simple python code that can run inference on LLM models with rest api interface.
 - [Setup and run locally](#run-with-locally)
     - [Resource requirements](docs/usage.md)
 - [Run with Docker](#run-with-docker)
+    - [Run with huggingface model](#run-with-huggingface-model)
+    - [Run with local model](#run-with-local-model)
+    - [Run with custom env-file](#run-with-custom-env-file)
 - [Configuration values and parameters](#env-values-and-parameters)
     - [Rest API server config](#rest-api-server-config)
     - [General config](#general-config)
@@ -66,36 +69,33 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
 
 ## Run with docker
 
-- **CPU Mode**  (** NOT IMPLEMENTED **)
-    - CPU - slow but reliable
-        - ```
-            docker run -p 5050:5050 -v path/to/some_model:/usr/model alexandria_project
-          ```
-
-- **CUDA Mode**
-
+- **CUDA Mode** - using cuda required cuda drivers and cuda docker support.
     - requirements:
-      - nvidia-drivers (instruction in the sections above according to your os)
-      - [cuda](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64)
-      - [docker-nvida2](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
-
+        - nvidia-drivers (instruction in the sections above according to your os)
+        - [cuda](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64)
+        - [docker-nvida2](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
     - Verify docker access:
-        ```
-            docker run --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark
-        ```
+        - `docker run --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark`
 
-- **run cuda with local model**
-    - ```
-    docker run --gpus all -p 5050:5050 -v path/to/some_model:/usr/model alexandria-project
-    ``` 
-- **run cuda with hugging face**
-    - ```
-    docker run --gpus all -e MODEL_PATH="[huggingface model url]" -p 5050:5050 alexandria-project
-    ```
-- **run with custom env-file**
-    - ```
-    docker run --gpus all --env-file .env.example -p 5050:5050 alexandria-project
-    ```
+### Run with huggingface model
+
+```shell
+docker run --gpus all -e MODEL_PATH="[huggingface model url]" -p 5050:5050 alexandria-project
+
+# example docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 5050:5050 alexandria-project
+```
+
+### Run with local model
+
+```shell
+docker run --gpus all -p 5050:5050 -v path/to/some_model:/usr/model alexandria-project
+```
+
+### Run with custom env-file
+
+```shell
+docker run --gpus all --env-file .env.example -p 5050:5050 alexandria-project
+```
 
 ## .env values and parameters
 
