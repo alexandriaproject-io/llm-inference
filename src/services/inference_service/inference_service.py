@@ -7,7 +7,7 @@ from src.services.inference_service.utils import check_request_cache, ResponseQu
 from src.services.inference_service.inference_response_service import handle_model_responses, handle_cpp_model_responses
 
 
-def start_model_generator(execution_queue, events_queue, ready_event):
+def start_model_generator(execution_queue, events_queue, startup_queue):
     response_queue = queue.Queue()
     cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
     execution_cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
@@ -16,8 +16,13 @@ def start_model_generator(execution_queue, events_queue, ready_event):
         from src.models.llama_cpp.llm_cpp_model_class import LLMCPPModel
 
         llm_model = LLMCPPModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
-        llm_model.load_model()
-        llm_model.run_model()
+        try:
+            llm_model.load_model()
+            llm_model.run_model()
+        except Exception as e:
+            startup_queue.put({"success": False, "error": f"{e}"})
+            exit(0)
+
         threading.Thread(
             target=handle_cpp_model_responses,
             args=(response_queue, events_queue, execution_cache, cache),
@@ -27,8 +32,12 @@ def start_model_generator(execution_queue, events_queue, ready_event):
         from src.models.huggingface.llm_model_class import LLMModel
 
         llm_model = LLMModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
-        llm_model.load_model()
-        llm_model.run_model()
+        try:
+            llm_model.load_model()
+            llm_model.run_model()
+        except Exception as e:
+            startup_queue.put({"success": False, "error": f"{e}"})
+            exit(0)
 
         tokenizer_config = {"device": llm_model.device, "SPACE_TOKEN_CHAR": config.SPACE_TOKEN_CHAR}
         threading.Thread(
@@ -37,7 +46,7 @@ def start_model_generator(execution_queue, events_queue, ready_event):
             daemon=True
         ).start()
 
-    ready_event.set()
+    startup_queue.put({"success": True, "error": ""})
 
     try:
         while True:

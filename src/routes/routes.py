@@ -21,9 +21,19 @@ async def thrift_file(request):
     return web.FileResponse(file_path)
 
 
+async def is_alive(r):
+    return web.Response(text="alive", status=200)
+
+
+async def is_ready(r):
+    return web.Response(text="ready", status=200)
+
+
 def set_routes(app):
     app.add_routes([
         # HTTP endpoints and Web Socket
+        web.post('/api/alive', is_alive),
+        web.post('/api/ready', is_ready),
         web.post('/api/generate-one', generate_controller.generate_one),
         web.post('/api/generate-batch', generate_controller.generate_batch),
         web.get('/api/ws', ws_controller.websocket_handler),
