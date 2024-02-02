@@ -15,7 +15,7 @@ RUN apt-get update -y && apt-get install -y \
 
 
 # apply the relevant .env
-COPY ./env-samples/.env.auto.example ./.env
+COPY ./env-samples/.env.llama-cpp.example ./.env
 
 # Copy the current directory contents into the container at /usr/src/app
 COPY ./LICENSE ./LICENSE
