@@ -64,31 +64,38 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
     - **files:**
       [TheBloke/Mistral-7B-Instruct-v0.2-GGUF/tree/main](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/tree/main)
 
-## Run with docker (** NOT IMPLEMENTED **)
+## Run with docker
 
-- **CPU Mode**
+- **CPU Mode**  (** NOT IMPLEMENTED **)
     - CPU - slow but reliable
         - ```
-            docker run --name alexandria-project alexandria-project -v path/to/model:/usr/model --env-file https://raw.githubusercontent.com/alexandriaproject-io/llm-inference/main/env-samples/.env.cpu.example 
+            docker run -p 5050:5050 -v path/to/some_model:/usr/model alexandria_project
           ```
 
 - **CUDA Mode**
+
+    - requirements:
+      - nvidia-drivers (instruction in the sections above according to your os)
+      - [cuda](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64)
+      - [docker-nvida2](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
     - Verify docker access:
-        - ```
+        ```
             docker run --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark
-            ```
-            - If not please
-              install https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+        ```
 
-
-- **Cuda 12.1 or later ( GTX 20xx, 30xx, 40xx )**
+- **run cuda with local model**
     - ```
-      docker run --gpus all --name alexandria-project alexandria-project -v path/to/model:/usr/model --env-file https://raw.githubusercontent.com/alexandriaproject-io/llm-inference/main/env-samples/.env.cuda.example 
-      ```
-- **Cuda 11.8 ( for GTX 10xx series)**
+    docker run --gpus all -p 5050:5050 -v path/to/some_model:/usr/model alexandria-project
+    ``` 
+- **run cuda with hugging face**
     - ```
-      docker run --gpus all --name alexandria-project alexandria-project -v path/to/model:/usr/model --env-file https://raw.githubusercontent.com/alexandriaproject-io/llm-inference/main/env-samples/.env.cuda.example 
-      ```
+    docker run --gpus all -e MODEL_PATH="[huggingface model url]" -p 5050:5050 alexandria-project
+    ```
+- **run with custom env-file**
+    - ```
+    docker run --gpus all --env-file .env.example -p 5050:5050 alexandria-project
+    ```
 
 ## .env values and parameters
 

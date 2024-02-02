@@ -1,0 +1,37 @@
+FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Install build tools and compilers
+RUN apt-get update -y && apt-get install -y \
+  build-essential \
+  cmake \
+  && rm -rf /var/lib/apt/lists/*
+
+# Avoid user interaction with tzdata when installing
+ENV DEBIAN_FRONTEND=noninteractive
+
+# apply the relevant .env
+COPY ./env-samples/.env.auto.example ./.env
+
+# Copy the current directory contents into the container at /usr/src/app
+COPY ./LICENSE ./LICENSE
+COPY ./com/ ./com/
+COPY ./html ./html/
+COPY ./src ./src/
+COPY ./main.py ./main.py
+COPY ./logger.py ./logger.py
+COPY ./requirements.txt ./requirements.txt
+COPY ./ui-app ./ui-app
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN  pip install llama-cpp-python
+
+# Install bitsandbytes
+RUN pip install bitsandbytes
+
+# Run main.py when the container launches
+CMD ["python", "main.py", "--multiprocess"]

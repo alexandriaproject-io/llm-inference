@@ -3,12 +3,8 @@ import threading
 import time
 from cachetools import TTLCache
 from src.config import config
-from src.models.huggingface.llm_model_class import LLMModel
-from src.models.llama_cpp.llm_cpp_model_class import LLMCPPModel
 from src.services.inference_service.utils import check_request_cache, ResponseQueueStreamer, LLMInternalEventTypes
 from src.services.inference_service.inference_response_service import handle_model_responses, handle_cpp_model_responses
-
-import src.models.huggingface as huggingface
 
 
 def start_model_generator(execution_queue, events_queue, ready_event):
@@ -17,6 +13,8 @@ def start_model_generator(execution_queue, events_queue, ready_event):
     execution_cache = TTLCache(maxsize=config.MAX_CACHE_SIZE, ttl=config.MAX_CACHE_TTL)
 
     if config.USE_LLAMA_CPP:
+        from src.models.llama_cpp.llm_cpp_model_class import LLMCPPModel
+
         llm_model = LLMCPPModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
         llm_model.load_model()
         llm_model.run_model()
@@ -26,6 +24,8 @@ def start_model_generator(execution_queue, events_queue, ready_event):
             daemon=True
         ).start()
     else:
+        from src.models.huggingface.llm_model_class import LLMModel
+
         llm_model = LLMModel(config.MODEL_PATH, config.BASE_MODEL_CONFIG)
         llm_model.load_model()
         llm_model.run_model()

@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+load_dotenv(override=False)
 
 # Rest API server configuration
 SERVER_HOST = os.getenv("SERVER_HOST", "127.0.0.1")
