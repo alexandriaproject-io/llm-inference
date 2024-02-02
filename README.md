@@ -80,21 +80,22 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
 ### Run with huggingface model
 
 ```shell
-docker run --gpus all -e MODEL_PATH="[huggingface model url]" -p 5050:5050 alexandria-project
+docker run --gpus all -e MODEL_PATH="[huggingface model url]" -p 6060:6060 alexandria-project
 
-# example docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 5050:5050 alexandria-project
+# example1: docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 alexandria-project
+# example2: docker run --gpus all -e MODEL_PATH="mistralai/Mistral-7B-Instruct-v0.2" -p 6060:6060 alexandria-project
 ```
 
 ### Run with local model
 
 ```shell
-docker run --gpus all -p 5050:5050 -v path/to/some_model:/usr/model alexandria-project
+docker run --gpus all -p 6060:6060 -v path/to/some_model:/usr/model alexandria-project
 ```
 
 ### Run with custom env-file
 
 ```shell
-docker run --gpus all --env-file .env.example -p 5050:5050 alexandria-project
+docker run --gpus all --env-file .env.example -p 6060:6060 alexandria-project
 ```
 
 ## .env values and parameters
@@ -106,7 +107,7 @@ You can find the example file here [.env.example](.env.example)
 | **Variable Name**  | **Default Value** | **values**                                         | **Description**                                                                                                                                                 |
 |--------------------|-------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **SERVER_HOST**    | 127.0.0.1         | 0.0.0.0 - 255.255.255.255                          | IP address the port will listen to (0.0.0.0 is any ip).                                                                                                         |
-| **SERVER_PORT**    | 5050              | 1-65535                                            | Port the rest api service will listen to.                                                                                                                       |
+| **SERVER_PORT**    | 6060              | 1-65535                                            | Port the rest api service will listen to.                                                                                                                       |
 | **LOG_LEVEL**      | info              | critical, fatal, error, warning, warn, info, debug | Level of logs: critical, fatal, error, warning, warn, info, debug                                                                                               |
 | **MAX_CACHE_SIZE** | 16384             | 1-2147483647                                       | Max cached prompt executions                                                                                                                                    |
 | **MAX_CACHE_TTL**  | 3600              | 1-2147483647                                       | **Cache TTL** - after this time from the last **request_id/request_ids** execution the cache will be cleared. Cache is also **cleared** with **EOS** is reached |
@@ -126,7 +127,8 @@ You can find the example file here [.env.example](.env.example)
 | **LLAMA_CPP_BATCH_TOKENS** | 2048              | Any Int     | Represents the number of batches or the size of each batch being processed in the program.                       |
 | **LLAMA_RAM_CACHE_MB**     | 512               | Any Int     | Caching greatly increases repeated prompt generations ( like 10 tokes at a time )                                |
 
-`NOTE: when using llama-cpp all of the **Transformers config** will be ignored`
+`NOTE: when using llama-cpp all of the **Transformers config** will be ignored` \
+`NOTE: this is used primeraly for debugging its not a good implementation of llama.cpp`
 
 ### Huggingface Transformers config
 

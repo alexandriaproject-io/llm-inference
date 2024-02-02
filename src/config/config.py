@@ -5,7 +5,7 @@ load_dotenv(override=False)
 
 # Rest API server configuration
 SERVER_HOST = os.getenv("SERVER_HOST", "127.0.0.1")
-SERVER_PORT = int(os.getenv("SERVER_PORT", "5050"))
+SERVER_PORT = int(os.getenv("SERVER_PORT", "6060"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "info")
 MAX_CACHE_SIZE = int(os.getenv("MAX_CACHE_SIZE", "16384"))
 MAX_CACHE_TTL = int(os.getenv("MAX_CACHE_TTL", "3600"))
