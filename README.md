@@ -4,10 +4,13 @@ Simple python code that can run inference on LLM models with rest api interface.
 
 - [Setup and run locally](#run-with-locally)
     - [Resource requirements](docs/usage.md)
+- [Docker images](#docker-images)
 - [Run with Docker](#run-with-docker)
-    - [Run with huggingface model](#run-with-huggingface-model)
-    - [Run with local model](#run-with-local-model)
-    - [Run with custom env-file](#run-with-custom-env-file)
+    - [Docker images](#docker-images)
+    - [Docker examples](#docker-examples)
+        - [Run with huggingface model](#run-with-huggingface-model)
+        - [Run with local model](#run-with-local-model)
+        - [Run with custom env-file](#run-with-custom-env-file)
 - [Configuration values and parameters](#env-values-and-parameters)
     - [Rest API server config](#rest-api-server-config)
     - [General config](#general-config)
@@ -77,25 +80,66 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
     - Verify docker access:
         - `docker run --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark`
 
+## Docker images
+
+**Images:**
+
+- `niftylius/llm-inference:auto` / `niftylius/llm-inference:latest`
+    - Will use the `auto` flag when loading the model,it will prioritize GPU but spread the model on cpu if there is
+      not enough VRAM available.
+- `niftylius/llm-inference:cpu`
+    - Will use the `cpu` flag when loading the model, this will load the model to RAM and use CPU for inference
+- `niftylius/llm-inference:cuda-11`
+    - For older GPUS. Will use the `cuda` flag and cuda-11.8 drivers when loading the model. Peripherally for 10xx
+      nvidia GPUs.
+- `niftylius/llm-inference:cuda-12`
+    - Will use the `cuda` flag and cuda-12.1 drivers when loading the model.
+
+## Docker examples
+
+Load TinyLlama/TinyLlama-1.1B-Chat-v1.0 using default settings
+
+```shell
+# auto
+docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 niftylius/llm-inference:auto
+
+# cuda 12.1
+docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 niftylius/llm-inference:cuda-12
+
+# cuda 11.8
+docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 niftylius/llm-inference:cuda-11
+
+# cpu
+docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 niftylius/llm-inference:cpu
+```
+
 ### Run with huggingface model
 
 ```shell
-docker run --gpus all -e MODEL_PATH="[huggingface model url]" -p 6060:6060 alexandria-project
+# auto
+docker run --gpus all -e MODEL_PATH="[huggingface model url]" -p 6060:6060 niftylius/llm-inference
 
-# example1: docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 alexandria-project
-# example2: docker run --gpus all -e MODEL_PATH="mistralai/Mistral-7B-Instruct-v0.2" -p 6060:6060 alexandria-project
+# example1: docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 niftylius/llm-inference
+# example2: docker run --gpus all -e MODEL_PATH="mistralai/Mistral-7B-Instruct-v0.2" -p 6060:6060 niftylius/llm-inference
 ```
 
 ### Run with local model
 
+Make sure the path to your model is absolute
+
 ```shell
-docker run --gpus all -p 6060:6060 -v path/to/some_model:/usr/model alexandria-project
+# this will load the model from your local machine
+docker run --gpus all -p 6060:6060 -v path/to/some_model:/usr/model niftylius/llm-inference:latest
 ```
 
 ### Run with custom env-file
 
+Download .env.example file locally from: \
+https://raw.githubusercontent.com/alexandriaproject-io/llm-inference/main/.env.example
+
 ```shell
-docker run --gpus all --env-file .env.example -p 6060:6060 alexandria-project
+# edit .env.example and run
+docker run --gpus all --env-file .env.example -e MODEL_PATH="[huggingface model url]" -p 6060:6060 niftylius/llm-inference:latest
 ```
 
 ## .env values and parameters
