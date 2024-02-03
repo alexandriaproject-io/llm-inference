@@ -6,38 +6,118 @@ on:
       - main
 
 jobs:
-  docker-build-and-push:
+  auto-build-and-push:
     runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
       - name: Add SHORT_SHA to env
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-10`" >> $GITHUB_ENV
-
       - name: Build Docker image
         working-directory: .
         env:
-          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:llama-cpp-${{ env.SHORT_SHA }}
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:auto-${{ env.SHORT_SHA }}
+          IMAGE_TAG: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:auto
+          IMAGE_LATEST: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:latest
         run: |
-          docker build --network host -f docker/Dockerfile.llama-cpp  -t "$IMAGE_NAME" .
-
-      - name: Tag Docker image as latest
-        env:
-          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:llama-cpp-${{ env.SHORT_SHA }}
-          IMAGE_LATEST: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:llama-cpp
-        run: |
-          docker tag "$IMAGE_NAME" "$IMAGE_LATEST"
-
-      - name: Log in to Docker Hub
+          docker build --network host -f docker/Dockerfile.auto  -t "$IMAGE_NAME" .
+          docker tag "$IMAGE_NAME" "$IMAGE_TAG" "$IMAGE_LATEST"
+      - name: Log in to Docker HubIMAGE_TAG
         run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
-
       - name: Push Docker image to Docker Hub
         working-directory: .
         env:
           IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}
-        run: |
-          docker push --all-tags "$IMAGE_NAME"
+        run: docker push --all-tags "$IMAGE_NAME"
 
-  
-           
+  cuda12-build-and-push:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Add SHORT_SHA to env
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-10`" >> $GITHUB_ENV
+      - name: Build Docker image
+        working-directory: .
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:cuda-12-${{ env.SHORT_SHA }}
+          IMAGE_TAG: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:cuda-12
+        run: |
+          docker build --network host -f docker/Dockerfile.cuda12  -t "$IMAGE_NAME" .
+          docker tag "$IMAGE_NAME" "$IMAGE_TAG"
+      - name: Log in to Docker HubIMAGE_TAG
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
+      - name: Push Docker image to Docker Hub
+        working-directory: .
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}
+        run: docker push --all-tags "$IMAGE_NAME"
+
+  cuda11-build-and-push:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Add SHORT_SHA to env
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-10`" >> $GITHUB_ENV
+      - name: Build Docker image
+        working-directory: .
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:cuda-11-${{ env.SHORT_SHA }}
+          IMAGE_TAG: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:cuda-11
+        run: |
+          docker build --network host -f docker/Dockerfile.cuda11  -t "$IMAGE_NAME" .
+          docker tag "$IMAGE_NAME" "$IMAGE_TAG"
+      - name: Log in to Docker HubIMAGE_TAG
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
+      - name: Push Docker image to Docker Hub
+        working-directory: .
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}
+        run: docker push --all-tags "$IMAGE_NAME"
+
+  cpu-build-and-push:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Add SHORT_SHA to env
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-10`" >> $GITHUB_ENV
+      - name: Build Docker image
+        working-directory: .
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:cpu-${{ env.SHORT_SHA }}
+          IMAGE_TAG: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:cpu
+        run: |
+          docker build --network host -f docker/Dockerfile.cpu  -t "$IMAGE_NAME" .
+          docker tag "$IMAGE_NAME" "$IMAGE_TAG"
+      - name: Log in to Docker HubIMAGE_TAG
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
+      - name: Push Docker image to Docker Hub
+        working-directory: .
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}
+        run: docker push --all-tags "$IMAGE_NAME"
+
+  llama-cpp-build-and-push:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Add SHORT_SHA to env
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-10`" >> $GITHUB_ENV
+      - name: Build Docker image
+        working-directory: .
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:llama-cpp-${{ env.SHORT_SHA }}
+          IMAGE_TAG: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:llama-cpp
+        run: |
+          docker build --network host -f docker/Dockerfile.llama-cpp  -t "$IMAGE_NAME" .
+          docker tag "$IMAGE_NAME" "$IMAGE_TAG"
+      - name: Log in to Docker HubIMAGE_TAG
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
+      - name: Push Docker image to Docker Hub
+        working-directory: .
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}
+        run: docker push --all-tags "$IMAGE_NAME"
