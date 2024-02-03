@@ -21,7 +21,8 @@ jobs:
           IMAGE_LATEST: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:latest
         run: |
           docker build --network host -f docker/Dockerfile.auto  -t "$IMAGE_NAME" .
-          docker tag "$IMAGE_NAME" "$IMAGE_TAG" "$IMAGE_LATEST"
+          docker tag "$IMAGE_NAME" "$IMAGE_TAG"
+          docker tag "$IMAGE_NAME" "$IMAGE_LATEST"
       - name: Log in to Docker HubIMAGE_TAG
         run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
       - name: Push Docker image to Docker Hub
