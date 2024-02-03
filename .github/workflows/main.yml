@@ -20,7 +20,7 @@ jobs:
         env:
           IMAGE_NAME: ${{ secrets.DOCKERHUB_USER }}/${{ vars.IMAGE_NAME }}:llama-cpp-${{ env.SHORT_SHA }}
         run: |
-          docker build --network host -f docker\Dockerfile.llama-cpp  -t "$IMAGE_NAME" .
+          docker build --network host -f docker/Dockerfile.llama-cpp  -t "$IMAGE_NAME" .
 
       - name: Tag Docker image as latest
         env:
