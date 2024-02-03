@@ -12,8 +12,6 @@ RUN apt-get update -y && apt-get install -y \
   cmake \
   && rm -rf /var/lib/apt/lists/*
 
-
-
 # apply the relevant .env
 COPY ./env-samples/.env.llama-cpp.example ./.env
 

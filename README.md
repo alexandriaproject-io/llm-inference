@@ -94,6 +94,9 @@ you need to add PYTHONUNBUFFERED=1;PYDEVD_USE_FRAME_EVAL=NO to your Run/Debug en
       nvidia GPUs.
 - `niftylius/llm-inference:cuda-12`
     - Will use the `cuda` flag and cuda-12.1 drivers when loading the model.
+- `niftylius/llm-inference:llama-cpp`
+    - Will use llama-cpp as the inference service instead of Huggingface transformers.
+    - `NOTE: cpu mode only if you want to run quantized version use LOAD_IN_4BIT flag on "auto" or "cuda" dockers`
 
 ## Docker examples
 
@@ -110,7 +113,10 @@ docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060
 docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 niftylius/llm-inference:cuda-11
 
 # cpu
-docker run --gpus all -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 niftylius/llm-inference:cpu
+docker run -e MODEL_PATH="TinyLlama/TinyLlama-1.1B-Chat-v1.0" -p 6060:6060 niftylius/llm-inference:cpu
+
+# llama-cpp on cpu
+docker run -v [path/to/some_model_folder]:/usr/model -e MODEL_PATH="/usr/model/[your model].gguf" -p 6060:6060 niftylius/llm-inference:llama-cpp
 ```
 
 ### Run with huggingface model
