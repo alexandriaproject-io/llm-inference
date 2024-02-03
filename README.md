@@ -11,6 +11,7 @@ Simple python code that can run inference on LLM models with rest api interface.
         - [Run with huggingface model](#run-with-huggingface-model)
         - [Run with local model](#run-with-local-model)
         - [Run with custom env-file](#run-with-custom-env-file)
+- [Docker build](#docker-build)
 - [Configuration values and parameters](#env-values-and-parameters)
     - [Rest API server config](#rest-api-server-config)
     - [General config](#general-config)
@@ -146,6 +147,30 @@ https://raw.githubusercontent.com/alexandriaproject-io/llm-inference/main/.env.e
 ```shell
 # edit .env.example and run
 docker run --gpus all --env-file .env.example -e MODEL_PATH="[huggingface model url]" -p 6060:6060 niftylius/llm-inference:latest
+```
+
+## Docker build
+
+Clone git project with: \
+`git clone git@github.com:alexandriaproject-io/llm-inference.git`
+
+Navigate in to the project folder and run:
+
+```shell
+# build auto docker image
+docker build -f .\docker\Dockerfile.auto -t [Your Image tag name] .
+
+# build cuda 12.1 docker image
+docker build -f .\docker\Dockerfile.cuda12 -t [Your Image tag name] .
+
+# build cuda 11.8 docker image
+docker build -f .\docker\Dockerfile.cuda11 -t [Your Image tag name] .
+
+# build cpu docker image
+docker build -f .\docker\Dockerfile.cpu -t [Your Image tag name] .
+
+# build llama-cpp
+docker build -f .\docker\Dockerfile.llama-cpp.cuda -t [Your Image tag name] .
 ```
 
 ## .env values and parameters
