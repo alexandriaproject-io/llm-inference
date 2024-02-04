@@ -32,13 +32,14 @@ class NotReadyException(Exception):
 
 class LLMModel:
     def __init__(self, model_path, config):
+        use_cuda = config["ENABLE_CUDA"] and torch.cuda.is_available()
         self.isReady = False
         self.tokenizer = None
         self.model = None
         self.config = config
         self.model_path = model_path
-        self.device = f"cuda:{self.config['TARGET_GPU_INDEX']}" if self.config["ENABLE_CUDA"] and torch.cuda.is_available() else "cpu"
-        self.isBF16Supported = False if not self.config["ENABLE_CUDA"] else torch.cuda.is_bf16_supported()
+        self.device = f"cuda:{self.config['TARGET_GPU_INDEX']}" if use_cuda else "cpu"
+        self.isBF16Supported = use_cuda and torch.cuda.is_bf16_supported()
         self.is8bitQuantized = self.config["LOAD_IN_8BIT"] and not self.config["LOAD_IN_4BIT"]
         self.is4bitQuantized = self.config["LOAD_IN_4BIT"]
         self.isQuantized = self.is8bitQuantized or self.is4bitQuantized
@@ -54,14 +55,25 @@ class LLMModel:
         self.tokenizer.add_special_tokens({"pad_token": self.tokenizer.pad_token})
 
     def load_model(self):
-        log.info(f"Target model: {self.model_path} using seed {self.config['MODEL_SEED']}")
         torch.cuda.manual_seed(self.config["MODEL_SEED"])
         torch.manual_seed(self.config["MODEL_SEED"])
-        log.info("Loading model from disk. Be patient this can take a while...")
         device_map = "auto" if self.config["DEVICE_MAP_AUTO"] else (
             'cpu' if self.device == 'cpu' else f"cuda:{self.config['TARGET_GPU_INDEX']}"
         )
         llm_model_loader = get_model_loader(self.config["MODEL_LOADER"])
+
+        log.info(f" * Target model: {self.model_path} using seed {self.config['MODEL_SEED']}")
+        log.info(f" * Loader: {llm_model_loader.__name__}")
+        log.info(f" * Device: {self.device}")
+        log.info(f" * Device map: {device_map}")
+        log.info(f" * Torch Dtype: {self.model_type}")
+        log.info(f" * Is BF16 Supported: {self.isBF16Supported}")
+        log.info(f" * Is 8bit Quantized: {self.is8bitQuantized}")
+        log.info(f" * Is 4bit Quantized: {self.is4bitQuantized}")
+        log.info(f" * return_dict: True")
+        log.info(f" * low_cpu_mem_usage: True\n")
+        log.info("Loading model from disk. Be patient this can take a while...")
+
         self.model = llm_model_loader.from_pretrained(
             self.model_path,
             return_dict=True,

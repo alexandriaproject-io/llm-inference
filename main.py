@@ -11,7 +11,7 @@ if __name__ == '__main__':
         events_queue = Queue()
         startup_queue = Queue()
 
-        print("Lading LLM inference service")
+        print("Lading LLM inference service\n")
         llm_process = Process(
             target=start_model_generator,
             args=(execution_queue, events_queue, startup_queue),
