@@ -21,6 +21,13 @@ class LLMCPPModel:
         self.cache = None
 
     def load_model(self):
+        log.info(f" Using llama-cpp-python:")
+        log.info(f" * Target model: {self.model_path}")
+        log.info(f" * Seed {self.config['MODEL_SEED']}")
+        log.info(f" * Max context: {config.LLAMA_CPP_MAX_CONTEXT}")
+        log.info(f" * Batch tokens: {config.LLAMA_CPP_BATCH_TOKENS}")
+        log.info(f" * Cache size: {config.LLAMA_RAM_CACHE_MB} mb")
+        log.info(f" * verbose: False\n")
         self.model = llama_cpp.Llama(
             model_path=self.model_path,
             n_ctx=config.LLAMA_CPP_MAX_CONTEXT,

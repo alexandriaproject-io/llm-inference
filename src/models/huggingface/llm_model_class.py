@@ -62,7 +62,9 @@ class LLMModel:
         )
         llm_model_loader = get_model_loader(self.config["MODEL_LOADER"])
 
-        log.info(f" * Target model: {self.model_path} using seed {self.config['MODEL_SEED']}")
+        log.info(f" Using transformers:")
+        log.info(f" * Target model: {self.model_path}")
+        log.info(f" * Seed {self.config['MODEL_SEED']}")
         log.info(f" * Loader: {llm_model_loader.__name__}")
         log.info(f" * Device: {self.device}")
         log.info(f" * Device map: {device_map}")
