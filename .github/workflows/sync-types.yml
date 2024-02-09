@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - github-sync-action
-    # paths:
-    #   - "thrift/**"
-    #   - "thrift_build.ps1"
-    #   - "thrift_build.sh"
+    paths:
+      - "thrift/**"
+      - "thrift_build.ps1"
+      - "thrift_build.sh"
 jobs:
   sync:
     runs-on: self-hosted
@@ -17,24 +17,18 @@ jobs:
         with:
           ref: dev
 
-      - name: Setup thrift
+      - name: Setup git config
         run: |
-          echo $GITHUB_SHA
+          git config --global user.name "LLM Inference GitHub Actions"
+          git config --global user.email "llm-inference-actions@github.com"
 
-      # - name: Add SHORT_SHA to env
-      #   run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-10`" >> $GITHUB_ENV
-
-      # - name: Setup git config
-      #   run: |
-      #     git config --global user.name "LLM Inference GitHub Actions"
-      #     git config --global user.email "actions@github.com"
-
-      # - name: Sync to target repository
-      #   uses: ad-m/github-push-action@v0.8.0
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     branch: dev
-      #     force: true
-      #     directory: "types"
-      #     repository: "LLM-Types/LLM-Types"
-      #     commit_message: "Sync thrift changes to types repository"
+      - name: Sync to target repository
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.TYPES_REPO_TOKEN }}
+          # repository: alexandriaproject-io/alexandria-project-types
+          repository: SergeSyntax/test-github-ci-cd-sync
+          branch: dev
+          force: true
+          directory: thrift
+          commit_message: "Sync changes from llm-inference @$GITHUB_SHA"
