@@ -31,4 +31,3 @@ jobs:
           branch: dev
           force: true
           directory: thrift
-          commit_message: "Sync changes from llm-inference @$GITHUB_SHA"
