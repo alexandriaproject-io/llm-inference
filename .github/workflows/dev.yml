@@ -16,14 +16,15 @@ jobs:
 
       - name: Clone, copy thrift folder, and include specific files
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git config --global pull.rebase true
+          
           
           git clone -b dev https://github.com/alexandriaproject-io/alexandria-project-types.git
           ls
           cd alexandria-project-types
           echo $(( $(cat nonce) + 1 )) > nonce
+          
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
           ls
 
           git add .
