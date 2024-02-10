@@ -15,4 +15,3 @@ struct GenerationConfig {
   7: optional double repetition_penalty; // Penalty for repetition: >1 discourages repetition, <1 encourages it.
   8: optional double length_penalty; // Controls length of generated text. Values >1 encourage longer sequences, <1 shorter.
 }
-
