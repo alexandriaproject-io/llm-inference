@@ -16,7 +16,10 @@ jobs:
 
       - name: Clone, copy thrift folder, and include specific files
         run: |
-          
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
           
           git clone -b dev https://github.com/alexandriaproject-io/alexandria-project-types.git
           ls
