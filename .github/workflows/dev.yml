@@ -28,6 +28,8 @@ jobs:
           git add .
           git commit -m "triggerd by llm-inference"
           git status
+          pwd
+          git remote show origin
           git push origin
 
           
