@@ -27,6 +27,7 @@ jobs:
           git config --global pull.rebase true
           git add .
           git commit -m "triggerd by llm-inference"
+          git status
           git push origin
 
           
