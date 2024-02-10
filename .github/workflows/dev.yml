@@ -1,0 +1,25 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  trigger-types-build:
+    runs-on: self-hosted
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.TYPES_REPO_TOKEN }}
+
+      - name: Clone, copy thrift folder, and include specific files
+        run: |
+          git clone -b dev https://github.com/alexandriaproject-io/alexandria-project-types.git
+          cd alexandria-project-types
+          echo $(( $(cat nonce) + 1 )) > nonce
+          git push origin
+
+          
+          
