@@ -19,6 +19,12 @@ jobs:
           git clone -b dev https://github.com/alexandriaproject-io/alexandria-project-types.git
           cd alexandria-project-types
           echo $(( $(cat nonce) + 1 )) > nonce
+          
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global pull.rebase true
+          git add .
+          git commit -m "triggerd by llm-inference"
           git push origin
 
           
