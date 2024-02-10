@@ -27,7 +27,7 @@ elif [[ "$1" == "--ts" ]]; then
     ts_outdir="${2:-./}" # Assuming default TypeScript output directory
     mkdir -p "$ts_outdir"
     # Assuming "ts" as the generator name for TypeScript, adjust as needed
-    thrift --gen ts -out $ts_outdir ./thrift/com.inference.common.thrift
-    thrift --gen ts -out $ts_outdir ./thrift/com.inference.rest.thrift
-    thrift --gen ts -out $ts_outdir ./thrift/com.inference.ws.thrift
+    thrift --gen js:ts -out $ts_outdir ./thrift/com.inference.common.thrift
+    thrift --gen js:ts -out $ts_outdir ./thrift/com.inference.rest.thrift
+    thrift --gen js:ts -out $ts_outdir ./thrift/com.inference.ws.thrift
 fi
