@@ -22,7 +22,6 @@ elif [[ "$1" == "--golang" ]]; then
     thrift --gen go -out $golang_outdir ./thrift/com.inference.common.thrift
     thrift --gen go -out $golang_outdir ./thrift/com.inference.rest.thrift
     thrift --gen go -out $golang_outdir ./thrift/com.inference.ws.thrift
-fi
 
 elif [[ "$1" == "--ts" ]]; then
     ts_outdir="${2:-./}" # Assuming default TypeScript output directory
